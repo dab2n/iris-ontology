@@ -512,6 +512,7 @@ function sprite(col) {
 
 /* 공간 한가운데에 놓인 글자 로고 — 화면에 붙인 것이 아니라 3D 좌표에 있다 */
 const LOGO_W = 170;                                  /* 공간 단위 폭. 가까울수록 커 보인다 */
+const LOGO_IMG = new Image(); LOGO_IMG.src = 'Iris.svg';   /* 흰색 워드마크 — 글자를 그리지 않고 이 한 장을 쓴다 */
 function drawLogo(p, a) {
   if (a <= .01) return;
   const w = LOGO_W * p.s;
@@ -522,13 +523,11 @@ function drawLogo(p, a) {
   gr.addColorStop(1, 'rgba(226,243,255,0)');
   ctx.globalAlpha = a; ctx.fillStyle = gr;
   ctx.fillRect(p.x - w * 1.5, p.y - w * 1.5, w * 3, w * 3);
-  ctx.font = '600 ' + (w * .46).toFixed(2) + 'px ' + SANS;
-  ctx.letterSpacing = (w * .055).toFixed(2) + 'px';   /* 자간은 글자 크기를 따라간다 */
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText('IRIS', p.x + w * .028, p.y);          /* 끝 자간만큼 오른쪽으로 밀리는 것을 되돌린다 */
+  if (LOGO_IMG.naturalWidth) {
+    const lw = w * 1.34, lh = lw * LOGO_IMG.naturalHeight / LOGO_IMG.naturalWidth;
+    ctx.drawImage(LOGO_IMG, p.x - lw / 2, p.y - lh / 2, lw, lh);
+  }
   ctx.restore();
-  ctx.letterSpacing = '0px';
 }
 
 /* 배경 먼지 — 구조와 무관한 아주 흐린 점 */
