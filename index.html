@@ -2201,7 +2201,11 @@ bare(true);        /* 들어오면 3D 와 질문창만 — 왼쪽 UI 는 버튼�
 resize();
 requestAnimationFrame(frame);
 { const q0 = new URLSearchParams(location.search).get('q');   /* ?q=질문 — 그 질문으로 바로 탐색 */
-  if (q0) setTimeout(() => { $('#askq').value = q0; ask(q0); }, INTRO.skip ? 300 : PT_AT + PT_SPAN + PT_DUR); }   /* 점이 다 뜬 뒤 */
+  const ready = INTRO.skip ? 400 : PT_AT + PT_SPAN + PT_DUR + 500;   /* 점이 다 떠오르고 자리를 잡을 때까지 */
+  if (q0) setTimeout(() => { $('#askq').value = q0; ask(q0); }, ready);
+  /* 처음 들어오면 영상부터 — 전시장에서 아무도 건드리지 않아도 혼자 시작한다.
+     로딩 중에 누가 이미 만졌으면(lastInput 이 찍혔으면) 가만히 둔다 */
+  else setTimeout(() => { if (!lastInput) demoOn(); }, ready); }
 </script>
 </body>
 </html>
