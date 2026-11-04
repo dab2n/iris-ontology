@@ -192,10 +192,15 @@ body:not(.bare) .ptab{display:none}
 .cap.off{opacity:0}
 .cap p{font-size:22px;line-height:1.45;font-weight:500;color:#fff;letter-spacing:-.3px;word-break:keep-all;
   text-shadow:0 1px 12px rgba(0,0,0,.28)}
-/* 영상이 도는 동안에는 맵과 자막만 남긴다 — 조작용 UI 는 전부 비운다 */
+/* 영상이 도는 동안에는 맵과 자막만 남긴다 — 조작용 UI 는 전부 비운다.
+   들어갈 때는 빠르게, 끝나고 돌아올 때는 천천히 순서대로 올라온다 */
+.ask,.eg,.ptab,.hint,.axes,.legend,.dsgn,.viewbar,.tourcap{transition:opacity .85s cubic-bezier(.3,0,.2,1)}
+.axes,.dsgn{transition-delay:.18s}
+.legend,.viewbar{transition-delay:.34s}
+.ask,.eg,.hint{transition-delay:.5s}
 body.demo .ask,body.demo .eg,body.demo .ptab,body.demo .hint,
 body.demo .axes,body.demo .legend,body.demo .dsgn,body.demo .viewbar,body.demo .tourcap{
-  opacity:0;pointer-events:none;transition:opacity .5s}
+  opacity:0;pointer-events:none;transition-duration:.45s;transition-delay:0s}
 @media (prefers-reduced-motion:reduce){.cap p,.cap i:after{animation:none}}
 .field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
   background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55);
@@ -1028,11 +1033,11 @@ cv.addEventListener('wheel', e => { e.preventDefault(); camTo = null; orbitOff()
 /* 두 번 누르면 — 흩어진 점이 모두 화면에 들어오는 자리로 돌아온다 */
 function fitAll() {
   const ns = NODES.filter(n => n.x != null); if (!ns.length) return;
-  const avg = k => ns.reduce((a, n) => a + n[k], 0) / ns.length;
-  const c = { x: avg('x'), y: avg('y'), z: avg('z') };
-  const R = Math.max(...ns.map(n => Math.hypot(n.x - c.x, n.y - c.y, n.z - c.z)));
+  /* 가운데는 늘 로고 자리(HC)다 — 점들의 무게중심으로 잡으면 저절로 돌 때 로고가 화면 밖으로 밀린다.
+     점은 애초에 HC 를 비우고 바깥으로 밀어 둔 배치라 HC 가 이 구름의 진짜 중심이다 */
+  const R = Math.max(...ns.map(n => Math.hypot(n.x - HC.x, n.y - HC.y, n.z - HC.z)));
   const need = R * FOCAL / .40;                       /* 반지름이 화면 반쪽 안에 들어오는 거리 */
-  camTo = { tx: c.x, ty: c.y, tz: c.z, dist: Math.max(420, Math.min(3600, need)), yaw: 0.52, pitch: -0.2 };
+  camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: Math.max(420, Math.min(3600, need)), yaw: 0.52, pitch: -0.2 };
 }
 cv.addEventListener('dblclick', () => { cancelQuery(); clearFocus(); home.yaw = 0.52; fitAll(); });
 function pick(x, y) {
@@ -1552,15 +1557,12 @@ $('#popen').onclick = () => bare(false);
 /* ══ 전시 모드 — 아무도 만지지 않으면 맵이 스스로 설명한다 ══════════════
    자막은 검색창 자리에 서고, 맵은 그 말에 맞춰 한 장면씩 움직인다.
    질문 장면은 규칙 기반 탐색으로 돈다 — 전시 내내 도는 것이라 AI 서버를 부르지 않는다. */
-const IDLE_MS = 300000;                                 /* 5분 동안 아무 조작이 없으면 처음부터 다시 돈다 */
+const IDLE_MS = 600000;                                 /* 한 바퀴 돌고 끝낸다. 10분 동안 아무 조작이 없으면 다시 */
 /* 전체가 한눈에 들어오는 자리. 참여자·파트는 맵 바깥에 멀찍이 떠 있어서 계산에 넣으면
    그 둘을 담느라 본체가 작아진다 — 논의 노드만 기준으로 잡는다 */
 function wideShot(k, pitch) {
-  const ns = BOX.body;
-  const avg = c => ns.reduce((a, n) => a + n[c], 0) / ns.length;
-  const c = { x: avg('x'), y: avg('y'), z: avg('z') };
-  const R = Math.max(...ns.map(n => Math.hypot(n.x - c.x, n.y - c.y, n.z - c.z)));
-  camTo = { tx: c.x, ty: c.y, tz: c.z, dist: R * k, yaw: cam.yaw, pitch: pitch ?? -.2 };
+  const R = Math.max(...BOX.body.map(n => Math.hypot(n.x - HC.x, n.y - HC.y, n.z - HC.z)));
+  camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: R * k, yaw: cam.yaw, pitch: pitch ?? -.2 };
 }
 function demoAsk(q) {                                   /* 답변 화면까지 보여 주는 장면 */
   bare(false);
@@ -1572,36 +1574,36 @@ function demoAsk(q) {                                   /* 답변 화면까지 �
   play(R, () => answerHTML(A.lead, A.groups, R, ''));
 }
 const SHOW = [
-  { ms: 8500, say: ['Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다.'],
+  { ms: 8500, say: ['Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다'],
     go: () => { bare(true); setView('all'); stopTour(); clearFocus(); resetLights();
       tourKTo = 0; dimTo = .66; orbitOff();
       cam.dist = 620;                                  /* 조금 뒤에서 시작해 로고 쪽으로 천천히 밀고 들어간다 */
       camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: 290, yaw: .16, pitch: -.02 };
       cinema(1500, 1800); } },
-  { ms: 11000, say: ['기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다.',
-           'Iris 는 각 내용의 역할과 서로의 관계를 함께 기록합니다.'],
+  { ms: 11000, say: ['기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다',
+           'Iris 는 각 내용의 역할과 서로의 관계를 함께 기록합니다'],
     go: () => { dimTo = 0; wideShot(.66);
       cinema(2600, 3200);                              /* 느리게 빠지며 잔상을 끈다 — 맵이 열리는 순간 */
       setTimeout(orbitOn, 3000); } },
-  { ms: 7000, say: ['이 웹은 회의 내용의 연결 관계를 입체적으로 보여줍니다.',
-           `${NODES.length}개의 점과 ${EDGES.length}개의 선이 하나의 맵을 이룹니다.`],
+  { ms: 7000, say: ['이 웹은 회의 내용의 연결 관계를 입체적으로 보여줍니다',
+           `${NODES.length}개의 점과 ${EDGES.length}개의 선이 하나의 맵을 이룹니다`],
     go: () => { orbitOn(); } },
-  { ms: 17500, say: ['가로축은 회의 시간입니다.',
-           '왼쪽에서 시작해 오른쪽으로 갈수록 회의가 끝나갑니다.'],
+  { ms: 17500, say: ['가로축은 회의 시간입니다',
+           '왼쪽에서 시작해 오른쪽으로 갈수록 회의가 끝나갑니다'],
     go: () => startTour('x') },
-  { ms: 15500, say: ['세로축은 내용의 역할을 나타냅니다.',
-           '아래에는 근거와 쟁점이, 위에는 결론과 업무가 놓입니다.'],
+  { ms: 15500, say: ['세로축은 내용의 역할을 나타냅니다',
+           '아래에는 근거와 쟁점이, 위에는 결론과 업무가 놓입니다'],
     go: () => startTour('y') },
-  { ms: 12500, say: ['깊이는 다른 내용과 얼마나 많이 연결되어 있는지를 나타냅니다.',
-           '연결이 많을수록 앞쪽에 놓입니다.'],
+  { ms: 12500, say: ['깊이는 다른 내용과 얼마나 많이 연결되어 있는지를 나타냅니다',
+           '연결이 많을수록 앞쪽에 놓입니다'],
     go: () => startTour('z') },
-  { ms: 10000, say: ['점은 회의에서 나온 각각의 내용이고, 선은 그 사이의 관계입니다.',
-           '어떤 의견을 뒷받침하거나 반박했는지, 어떤 제안이 결론으로 이어졌는지 보여줍니다.'],
+  { ms: 10000, say: ['점은 회의에서 나온 각각의 내용이고, 선은 그 사이의 관계입니다',
+           '어떤 의견을 뒷받침하거나 반박했는지, 어떤 제안이 결론으로 이어졌는지 보여줍니다'],
     go: () => { stopTour(); dimTo = 0; setView('edges'); wideShot(.64); setTimeout(orbitOn, 1000); } },
-  { ms: 16000, say: ['궁금한 내용을 질문하면 맵의 연결 관계를 따라 답을 찾습니다.',
-           '근거가 된 발언도 함께 보여줍니다.'],
+  { ms: 16000, say: ['궁금한 내용을 질문하면 맵의 연결 관계를 따라 답을 찾습니다',
+           '근거가 된 발언도 함께 보여줍니다'],
     go: () => { setView('all'); demoAsk('로고는 왜 그렇게 정했어?'); } },
-  { ms: 7500, say: ['이제 여러분 차례입니다.', '화면을 직접 움직여 체험해 보세요!'],
+  { ms: 7500, say: ['이제 여러분들이 체험해 볼 차례입니다'],
     go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(.70); setTimeout(orbitOn, 900); } },
 ];
 let showT = 0, capT = 0;
@@ -1627,7 +1629,8 @@ function capPlay(lines, total) {
   step();
 }
 function demoScene(i) {
-  const s = SHOW[i % SHOW.length];
+  if (i >= SHOW.length) return demoOff(true);         /* 한 바퀴면 끝 — 되감아 다시 돌리지 않는다 */
+  const s = SHOW[i];
   capPlay(s.say, s.ms);
   s.go();
   showT = setTimeout(() => demoScene(i + 1), s.ms);
@@ -1638,17 +1641,21 @@ function demoOn() {
   $('#cap').hidden = false;
   demoScene(0);
 }
-function demoOff() {
+function demoOff(soft) {
   if (!inDemo()) return;
   clearTimeout(showT); clearTimeout(capT); $('#cap').classList.remove('off');
   document.body.classList.remove('demo');
   $('#cap').hidden = true;
   stopTour(); cancelQuery(); clearFocus(); setView('all');
-  orbitOff(); dimTo = 0; tourKTo = 0; camTau = 260; trailTo = 0; fitAll();
+  orbitOff(); dimTo = 0; tourKTo = 0; trailTo = 0;
+  /* 저절로 끝났으면 카메라도 천천히 제자리로 — 손이 닿아 끝낸 거면 바로 따라와야 한다 */
+  camTau = soft ? 1100 : 260;
+  fitAll();
+  if (soft) setTimeout(() => { camTau = 260; }, 3000);
   lastInput = performance.now();
 }
 ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
-  addEventListener(ev, () => { lastInput = performance.now(); demoOff(); }, { passive: true, capture: true }));
+  addEventListener(ev, () => { lastInput = performance.now(); demoOff(false); }, { passive: true, capture: true }));
 setInterval(() => {
   if (inDemo() || !$('#design').hidden || Q.active) return;
   if (performance.now() - lastInput > IDLE_MS) demoOn();
