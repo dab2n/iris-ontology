@@ -726,6 +726,16 @@ function drawAxes(now) {
   // 오른쪽 위 설명 줄도 축과 같은 박자로 켠다
   ['#ax-x', '#ax-y', '#ax-z'].forEach((id, i) => { const el = $(id); if (el && t >= AX_AT[i]) el.classList.add('on'); });
 }
+/* 시네마틱 연출 — 앞 프레임을 옅게 겹쳐 그려 잔상을 남긴다 (로고에서 빠져나올 때만 켠다).
+   진짜 블러 필터는 매 프레임 전체 화면에 걸면 느리다. 잔상은 drawImage 두 번이면 된다. */
+const TRAIL = document.createElement('canvas');
+let trail = 0, trailTo = 0;
+let camTau = 260;                      /* 카메라가 목표를 따라가는 빠르기 — 연출할 때만 길게 준다 */
+function cinema(tau, blurMs) {
+  camTau = tau; trailTo = 1;
+  setTimeout(() => { trailTo = 0; }, blurMs);
+  setTimeout(() => { camTau = 260; }, tau * 2.6);
+}
 const particles = [];
 const DRIFT = 0.0000315;            /* rad/ms — 한 바퀴 약 3분 20초 */
 const ease = (v, to, k) => v + (to - v) * k;
@@ -790,7 +800,7 @@ function frame() {
      3D 를 계속 돌리면 노트북 팬이 돈다 */
   if (document.hidden || !$('#design').hidden) return;
   const now = performance.now();   /* 파동·입자 시작 시각과 같은 시계를 쓴다 (rAF 시각은 조금 이를 수 있다) */
-  const kCam = K(260), kDim = K(220), kGlow = K(170), kSway = K(800), kView = K(190), kLbl = K(130);
+  const kCam = K(camTau), kDim = K(220), kGlow = K(170), kSway = K(800), kView = K(190), kLbl = K(130);
   const dt = Math.min(120, now - lastT);
   lastT = now;
   // 카메라
@@ -829,6 +839,12 @@ function frame() {
   ctx.fillStyle = gl; ctx.fillRect(-CW, -CW * 4, CW * 2, CW * 8);
   ctx.restore();
   ctx.fillStyle = GRAIN; ctx.fillRect(0, 0, CW, CH);                 /* 표지와 같은 입자감 */
+  trail = ease(trail, trailTo, kDim);
+  if (trail > .012 && TRAIL.width) {                                 /* 앞 프레임을 겹쳐 흐름을 남긴다 */
+    ctx.save(); ctx.globalAlpha = trail * .74;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(TRAIL, 0, 0);
+    ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
   ctx.globalCompositeOperation = 'source-over';
 
   const tIntro = since(now), dustK = clamp01(tIntro / 1200);
@@ -972,6 +988,11 @@ function frame() {
   ctx.globalCompositeOperation = 'source-over';
   hud();
 
+  if (trail > .012 || trailTo > .012) {                              /* 다음 프레임이 겹쳐 그릴 밑그림 */
+    if (TRAIL.width !== cv.width) { TRAIL.width = cv.width; TRAIL.height = cv.height; }
+    const g = TRAIL.getContext('2d');
+    g.clearRect(0, 0, TRAIL.width, TRAIL.height); g.drawImage(cv, 0, 0);
+  }
 }
 
 /* ================= 3. 조작 ================= */
@@ -1061,7 +1082,7 @@ function startTour(ax) {
   cancelQuery(); resetLights(); clearFocus();
   const d = TOUR_DEF[ax];
   TOUR = { ax, d, t0: performance.now(), a: d.a(), b: d.b() };
-  camTo = null; ORBIT = null; dimTo = .5; tourKTo = 1;
+  camTo = null; ORBIT = null; dimTo = .5; tourKTo = 1; camTau = 260; trailTo = 0;
   document.querySelectorAll('.axes button').forEach(b => b.classList.toggle('on', b.dataset.tour === ax));
   $('#tourcap').classList.add('on');
 }
@@ -1532,8 +1553,10 @@ $('#popen').onclick = () => bare(false);
    자막은 검색창 자리에 서고, 맵은 그 말에 맞춰 한 장면씩 움직인다.
    질문 장면은 규칙 기반 탐색으로 돈다 — 전시 내내 도는 것이라 AI 서버를 부르지 않는다. */
 const IDLE_MS = 40000;
-function wideShot(k, pitch) {                           /* 전체가 한눈에 들어오는 자리 */
-  const ns = NODES.filter(n => n.x != null);
+/* 전체가 한눈에 들어오는 자리. 참여자·파트는 맵 바깥에 멀찍이 떠 있어서 계산에 넣으면
+   그 둘을 담느라 본체가 작아진다 — 논의 노드만 기준으로 잡는다 */
+function wideShot(k, pitch) {
+  const ns = BOX.body;
   const avg = c => ns.reduce((a, n) => a + n[c], 0) / ns.length;
   const c = { x: avg('x'), y: avg('y'), z: avg('z') };
   const R = Math.max(...ns.map(n => Math.hypot(n.x - c.x, n.y - c.y, n.z - c.z)));
@@ -1549,13 +1572,17 @@ function demoAsk(q) {                                   /* 답변 화면까지 �
   play(R, () => answerHTML(A.lead, A.groups, R, ''));
 }
 const SHOW = [
-  { ms: 7500, say: ['Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다.'],
+  { ms: 8500, say: ['Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다.'],
     go: () => { bare(true); setView('all'); stopTour(); clearFocus(); resetLights();
       tourKTo = 0; dimTo = .66; orbitOff();
-      camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: 300, yaw: .16, pitch: -.02 }; } },
-  { ms: 10000, say: ['기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다.',
+      cam.dist = 620;                                  /* 조금 뒤에서 시작해 로고 쪽으로 천천히 밀고 들어간다 */
+      camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: 290, yaw: .16, pitch: -.02 };
+      cinema(1500, 1800); } },
+  { ms: 11000, say: ['기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다.',
            'Iris 는 각 내용의 역할과 서로의 관계를 함께 기록합니다.'],
-    go: () => { dimTo = 0; wideShot(1.3); setTimeout(orbitOn, 1200); } },
+    go: () => { dimTo = 0; wideShot(.66);
+      cinema(2600, 3200);                              /* 느리게 빠지며 잔상을 끈다 — 맵이 열리는 순간 */
+      setTimeout(orbitOn, 3000); } },
   { ms: 7000, say: ['이 웹은 회의 내용의 연결 관계를 입체적으로 보여줍니다.',
            `${NODES.length}개의 점과 ${EDGES.length}개의 선이 하나의 맵을 이룹니다.`],
     go: () => { orbitOn(); } },
@@ -1570,12 +1597,12 @@ const SHOW = [
     go: () => startTour('z') },
   { ms: 10000, say: ['점은 회의에서 나온 각각의 내용이고, 선은 그 사이의 관계입니다.',
            '어떤 의견을 뒷받침하거나 반박했는지, 어떤 제안이 결론으로 이어졌는지 보여줍니다.'],
-    go: () => { stopTour(); dimTo = 0; setView('edges'); wideShot(1.0); setTimeout(orbitOn, 1000); } },
+    go: () => { stopTour(); dimTo = 0; setView('edges'); wideShot(.64); setTimeout(orbitOn, 1000); } },
   { ms: 16000, say: ['궁금한 내용을 질문하면 맵의 연결 관계를 따라 답을 찾습니다.',
            '근거가 된 발언도 함께 보여줍니다.'],
     go: () => { setView('all'); demoAsk('로고는 왜 그렇게 정했어?'); } },
-  { ms: 7000, say: ['화면을 누르면 맵을 직접 둘러볼 수 있습니다.'],
-    go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(1.1); setTimeout(orbitOn, 900); } },
+  { ms: 7500, say: ['이제 여러분 차례입니다.', '화면을 직접 움직여 체험해 보세요!'],
+    go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(.70); setTimeout(orbitOn, 900); } },
 ];
 let showT = 0;
 const inDemo = () => document.body.classList.contains('demo');
@@ -1600,7 +1627,7 @@ function demoOff() {
   document.body.classList.remove('demo');
   $('#cap').hidden = true;
   stopTour(); cancelQuery(); clearFocus(); setView('all');
-  orbitOff(); dimTo = 0; tourKTo = 0; fitAll();
+  orbitOff(); dimTo = 0; tourKTo = 0; camTau = 260; trailTo = 0; fitAll();
   lastInput = performance.now();
 }
 ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
