@@ -153,13 +153,13 @@ canvas.drag{cursor:grabbing}
 .axes button:hover{background:rgba(255,255,255,.6)}
 .axes button.on{background:#fff;color:#12264a}
 .axes button small{display:block;margin-top:1px;font-size:9px;color:#50719f;letter-spacing:0}
-.viewbar{position:absolute;right:18px;bottom:22px;z-index:2;display:flex;gap:3px;padding:3px;border-radius:15px;
+.viewbar{position:absolute;left:50%;top:16px;transform:translateX(-50%);z-index:2;display:flex;gap:3px;padding:3px;border-radius:15px;
   background:rgba(255,255,255,.3);backdrop-filter:blur(8px);font:600 10px var(--mono)}
 .viewbar button{height:24px;padding:0 11px;border-radius:12px;color:#2b4a7a;cursor:pointer;
   letter-spacing:-.01em;transition:background .18s,color .18s}
 .viewbar button:hover{background:rgba(255,255,255,.55)}
 .viewbar button.on{background:#fff;color:#12264a}
-.tourcap{position:absolute;left:50%;top:18px;z-index:2;transform:translateX(-50%);padding:7px 15px;border-radius:16px;
+.tourcap{position:absolute;left:50%;top:60px;z-index:2;transform:translateX(-50%);padding:7px 15px;border-radius:16px;
   background:rgba(255,255,255,.36);backdrop-filter:blur(8px);color:#17305c;font:600 11px var(--mono);
   letter-spacing:-.01em;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none}
 .tourcap.on{opacity:1}
@@ -184,17 +184,14 @@ canvas.drag{cursor:grabbing}
 .ptab i{font-style:normal;font-size:9px;opacity:.7}
 .ptab span{writing-mode:vertical-rl}
 body:not(.bare) .ptab{display:none}
-/* 전시 모드 자막 — 검색창 자리에 선다 */
-.cap{position:absolute;left:50%;bottom:26px;z-index:4;transform:translateX(-50%);width:min(780px,calc(100% - 48px));
-  display:flex;align-items:center;gap:16px;padding:17px 22px;border-radius:22px;
-  background:rgba(255,255,255,.54);backdrop-filter:blur(14px);box-shadow:0 10px 34px rgba(14,46,96,.12)}
-.cap p{flex:1;font-size:16px;line-height:1.6;font-weight:500;color:#12264a;letter-spacing:-.2px;word-break:keep-all;
+/* 전시 모드 자막 — 검색창 자리에, 영화 자막처럼 가운데로 */
+.cap{position:absolute;left:50%;bottom:24px;z-index:4;transform:translateX(-50%);width:min(1060px,calc(100% - 56px));
+  padding:22px 32px 24px;border-radius:10px;text-align:center;
+  background:rgba(255,255,255,.5);backdrop-filter:blur(14px);box-shadow:0 10px 34px rgba(14,46,96,.1)}
+.cap p{font-size:21px;line-height:1.5;font-weight:500;color:#10264c;letter-spacing:-.4px;word-break:keep-all;
   animation:capin .55s cubic-bezier(.3,0,.2,1) both}
 @keyframes capin{from{opacity:0;transform:translateY(5px)}}
-.cap button{flex:none;height:30px;padding:0 14px;border-radius:99px;background:rgba(255,255,255,.72);
-  color:#2b4a7a;font-size:12px;font-weight:600;letter-spacing:-.1px}
-.cap button:hover{background:#fff}
-.cap i{position:absolute;left:22px;right:22px;bottom:8px;height:2px;border-radius:2px;background:rgba(43,74,122,.14);overflow:hidden}
+.cap i{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(43,74,122,.12);overflow:hidden;border-radius:0 0 10px 10px}
 .cap i:after{content:"";display:block;height:100%;background:#4b87e9;transform-origin:left;
   animation:capbar linear both;animation-duration:var(--sc,8s)}
 @keyframes capbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -493,11 +490,11 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
     <form class="field" id="askf"><input id="askq" autocomplete="off" placeholder="이 회의에 대해 무엇이든 물어보세요"><button>탐색</button></form>
   </div>
   <div class="scan" id="scan"><i></i><span id="scantx"></span></div>
-  <div class="cap" id="cap" hidden><p id="capt"></p><button type="button" id="capx">직접 둘러보기</button><i></i></div>
+  <div class="cap" id="cap" hidden><p id="capt"></p><i></i></div>
   <div class="viewbar" id="viewbar">
-    <button type="button" data-view="all" class="on">다 보기</button>
-    <button type="button" data-view="nodes">점만</button>
-    <button type="button" data-view="edges">선만</button>
+    <button type="button" data-view="all" class="on">모두</button>
+    <button type="button" data-view="nodes">요소</button>
+    <button type="button" data-view="edges">관계</button>
   </div>
 </main>
 
@@ -1552,32 +1549,39 @@ function demoAsk(q) {                                   /* 답변 화면까지 �
   play(R, () => answerHTML(A.lead, A.groups, R, ''));
 }
 const SHOW = [
-  { ms: 7500, say: 'Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다.',
+  { ms: 7500, say: ['Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다.'],
     go: () => { bare(true); setView('all'); stopTour(); clearFocus(); resetLights();
       tourKTo = 0; dimTo = .66; orbitOff();
       camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: 300, yaw: .16, pitch: -.02 }; } },
-  { ms: 10000, say: '기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다. Iris 는 각 내용의 역할과 서로의 관계를 함께 기록합니다.',
+  { ms: 10000, say: ['기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다.',
+           'Iris 는 각 내용의 역할과 서로의 관계를 함께 기록합니다.'],
     go: () => { dimTo = 0; wideShot(1.3); setTimeout(orbitOn, 1200); } },
-  { ms: 7000, say: `이 웹은 회의 내용의 연결 관계를 입체적으로 보여줍니다. ${NODES.length}개의 점과 ${EDGES.length}개의 선이 하나의 맵을 이룹니다.`,
+  { ms: 7000, say: ['이 웹은 회의 내용의 연결 관계를 입체적으로 보여줍니다.',
+           `${NODES.length}개의 점과 ${EDGES.length}개의 선이 하나의 맵을 이룹니다.`],
     go: () => { orbitOn(); } },
-  { ms: 17500, say: '가로축은 회의 시간입니다. 왼쪽에서 시작해 오른쪽으로 갈수록 회의가 끝나갑니다.',
+  { ms: 17500, say: ['가로축은 회의 시간입니다.',
+           '왼쪽에서 시작해 오른쪽으로 갈수록 회의가 끝나갑니다.'],
     go: () => startTour('x') },
-  { ms: 15500, say: '세로축은 내용의 역할을 나타냅니다. 아래에는 근거와 쟁점이, 위에는 결론과 업무가 놓입니다.',
+  { ms: 15500, say: ['세로축은 내용의 역할을 나타냅니다.',
+           '아래에는 근거와 쟁점이, 위에는 결론과 업무가 놓입니다.'],
     go: () => startTour('y') },
-  { ms: 12500, say: '깊이는 다른 내용과 얼마나 많이 연결되어 있는지를 나타냅니다. 연결이 많을수록 앞쪽에 놓입니다.',
+  { ms: 12500, say: ['깊이는 다른 내용과 얼마나 많이 연결되어 있는지를 나타냅니다.',
+           '연결이 많을수록 앞쪽에 놓입니다.'],
     go: () => startTour('z') },
-  { ms: 10000, say: '점은 회의에서 나온 각각의 내용이고, 선은 그 사이의 관계입니다. 어떤 의견을 뒷받침하거나 반박했는지, 어떤 제안이 결론으로 이어졌는지 보여줍니다.',
+  { ms: 10000, say: ['점은 회의에서 나온 각각의 내용이고, 선은 그 사이의 관계입니다.',
+           '어떤 의견을 뒷받침하거나 반박했는지, 어떤 제안이 결론으로 이어졌는지 보여줍니다.'],
     go: () => { stopTour(); dimTo = 0; setView('edges'); wideShot(1.0); setTimeout(orbitOn, 1000); } },
-  { ms: 16000, say: '궁금한 내용을 질문하면 맵의 연결 관계를 따라 답을 찾고, 근거가 된 발언도 함께 보여줍니다.',
+  { ms: 16000, say: ['궁금한 내용을 질문하면 맵의 연결 관계를 따라 답을 찾습니다.',
+           '근거가 된 발언도 함께 보여줍니다.'],
     go: () => { setView('all'); demoAsk('로고는 왜 그렇게 정했어?'); } },
-  { ms: 7000, say: '화면을 누르면 맵을 직접 둘러볼 수 있습니다.',
+  { ms: 7000, say: ['화면을 누르면 맵을 직접 둘러볼 수 있습니다.'],
     go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(1.1); setTimeout(orbitOn, 900); } },
 ];
 let showT = 0;
 const inDemo = () => document.body.classList.contains('demo');
 function demoScene(i) {
   const s = SHOW[i % SHOW.length], p = $('#capt'), bar = $('#cap').querySelector('i');
-  p.textContent = s.say;
+  p.innerHTML = s.say.map(esc).join('<br>');       /* 문장마다 줄을 바꾼다 — 자막은 한 줄에 한 문장이 읽기 쉽다 */
   p.style.animation = 'none'; void p.offsetWidth; p.style.animation = '';   /* 자막이 바뀔 때마다 다시 떠오르게 */
   bar.style.setProperty('--sc', s.ms + 'ms');
   bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
@@ -1599,7 +1603,6 @@ function demoOff() {
   orbitOff(); dimTo = 0; tourKTo = 0; fitAll();
   lastInput = performance.now();
 }
-$('#capx').onclick = demoOff;
 ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
   addEventListener(ev, () => { lastInput = performance.now(); demoOff(); }, { passive: true, capture: true }));
 setInterval(() => {
@@ -1759,7 +1762,7 @@ function renderDesign() {
         <ol class="howto">
           <li><b>아래 질문창에 질문해 보세요.</b> 맵에서 관련된 점을 찾아 보여주고, 왼쪽에는 답변과 근거가 된 발언이 나타납니다.</li>
           <li><b>왼쪽 위의 X · Y · Z를 눌러 보세요.</b> 카메라가 각 방향으로 이동하며 점들이 어떻게 배치되어 있는지 보여줍니다.</li>
-          <li><b>오른쪽 아래의 ‘선만’을 눌러 보세요.</b> 평소에는 숨겨진 관계선이 드러나 회의 내용이 어떻게 연결되어 있는지 살펴볼 수 있습니다.</li>
+          <li><b>화면 위의 ‘관계’를 눌러 보세요.</b> 평소에는 숨겨진 관계선이 드러나 회의 내용이 어떻게 연결되어 있는지 살펴볼 수 있습니다.</li>
         </ol></div>
     </div>
   </section>
