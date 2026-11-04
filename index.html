@@ -192,7 +192,10 @@ body:not(.bare) .ptab{display:none}
 .cap.off{opacity:0}
 .cap p{font-size:22px;line-height:1.45;font-weight:500;color:#fff;letter-spacing:-.3px;word-break:keep-all;
   text-shadow:0 1px 12px rgba(0,0,0,.28)}
-body.demo .ask,body.demo .eg,body.demo .ptab,body.demo .hint{opacity:0;pointer-events:none;transition:opacity .4s}
+/* 영상이 도는 동안에는 맵과 자막만 남긴다 — 조작용 UI 는 전부 비운다 */
+body.demo .ask,body.demo .eg,body.demo .ptab,body.demo .hint,
+body.demo .axes,body.demo .legend,body.demo .dsgn,body.demo .viewbar,body.demo .tourcap{
+  opacity:0;pointer-events:none;transition:opacity .5s}
 @media (prefers-reduced-motion:reduce){.cap p,.cap i:after{animation:none}}
 .field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
   background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55);
