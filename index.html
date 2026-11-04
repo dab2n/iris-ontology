@@ -1,0 +1,1713 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IRIS · Meeting Ontology (test)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#eef1f5; --panel:#f6f8fb; --card:#fff; --line:#dfe4ec; --line2:#e9edf3;
+  --ink:#1e232c; --ink2:#434b58; --dim:#7b8494; --faint:#a3abb8;
+  --blue:#3f63c9; --violet:#6a55c8; --cyan:#1d8ea0;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:SFKR,-apple-system,"Apple SD Gothic Neo",Pretendard,system-ui,sans-serif;
+  color:var(--ink);background:var(--bg);letter-spacing:-.02em;font-size:13px;-webkit-font-smoothing:antialiased;
+  display:grid;grid-template-columns:392px minmax(0,1fr);overflow:hidden}
+button,input{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:none}
+button{cursor:pointer}
+[hidden]{display:none!important}
+
+/* ── 왼쪽: 사람이 읽는 정리 ───────────────────── */
+.side{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--line)}
+.top{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:7px}
+.brand b{font-size:15px;font-weight:800;letter-spacing:.06em}
+.brand span{font-size:12px;color:var(--dim);font-weight:600}
+.brand i{margin-left:auto;font:600 9.5px var(--mono);letter-spacing:.08em;color:var(--violet);
+  border:1px solid #cfc6ee;border-radius:4px;padding:2px 5px;font-style:normal}
+.mt{margin-top:10px;font-size:14px;font-weight:750}
+.mm{margin-top:3px;font:500 10.5px var(--mono);color:var(--dim);letter-spacing:-.02em}
+
+.tabs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 12px 0;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card)}
+.tabs em{font:650 9.5px var(--mono);font-style:normal;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;margin-right:4px}
+.tab{height:24px;padding:0 9px;border-radius:5px;font-size:11.5px;font-weight:650;color:var(--ink2);border:1px solid var(--line);background:var(--card)}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tabs .sep{width:1px;background:var(--line);margin:3px 3px}
+
+.scroll{flex:1;overflow:auto;min-height:0}
+
+/* 답 · 상세 */
+.box{margin:12px 12px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 13px}
+.box .bq{display:flex;gap:8px;align-items:flex-start}
+.box .bq b{flex:1;font-size:13px;font-weight:750;line-height:1.45}
+.box .x{color:var(--faint);font-size:14px;line-height:1}
+.steps{display:flex;gap:3px;margin-top:9px}
+.steps span{flex:1;height:3px;border-radius:2px;background:var(--line2);transition:background .3s}
+.steps span.on{background:#8aa0e6}
+.stepl{margin-top:5px;font:500 10px var(--mono);color:var(--dim);letter-spacing:-.02em}
+.ans{margin-top:10px;display:grid;gap:5px}
+.ans div{font-size:12.5px;line-height:1.55;color:var(--ink)}
+/* 답변 — 사람이 읽는 문장이 먼저 */
+.lead{margin-top:10px;font-size:13.5px;line-height:1.75;color:var(--ink);letter-spacing:-.02em}
+.lead p+p{margin-top:6px}
+.pts{margin-top:10px;display:grid;gap:8px;list-style:none}
+.pts li{font-size:13px;line-height:1.65;color:var(--ink);padding-left:12px;position:relative}
+.pts li::before{content:"";position:absolute;left:0;top:.72em;width:4px;height:4px;border-radius:50%;background:#8aa0e6}
+.pts li em{display:block;font:600 10px var(--mono);letter-spacing:.02em;color:var(--dim);font-style:normal;margin-bottom:1px}
+.more{margin-top:14px;border-top:1px solid var(--line2);padding-top:4px}
+.more summary{cursor:pointer;list-style:none;margin:8px 0 6px;font:650 9.5px var(--mono);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.more summary::-webkit-details-marker{display:none}
+.more summary::before{content:"▸ ";color:var(--faint)}
+.more[open] summary::before{content:"▾ "}
+.hd{margin:12px 0 5px;font:650 9.5px var(--mono);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.path{display:grid;gap:2px}
+.path div{font-size:11.5px;line-height:1.45;color:var(--ink2);cursor:pointer;padding:2px 0}
+.path div:hover{color:var(--ink)}
+.path code{font:600 9.5px var(--mono);color:var(--blue);padding:0 3px;letter-spacing:-.02em}
+.path code.inf{color:var(--violet)}
+.src{display:grid;gap:6px}
+.q{padding:7px 9px;border-left:2px solid #b7c3e6;background:#f4f6fb;border-radius:0 5px 5px 0;cursor:pointer}
+.q:hover{background:#edf1fa}
+.q .qm{font:500 10px var(--mono);color:var(--dim);letter-spacing:-.02em;display:flex;gap:6px}
+.q .qm b{color:var(--ink2);font-weight:650}
+.q p{margin-top:2px;font-size:12px;line-height:1.5;color:var(--ink)}
+.q p mark{background:#dde5f8;color:inherit;border-radius:2px;padding:0 1px}
+.badge{font:600 9px var(--mono);letter-spacing:.04em;padding:1px 4px;border-radius:3px;border:1px solid var(--line);color:var(--dim)}
+.badge.exp{color:var(--blue);border-color:#c9d4f1}
+.badge.inf{color:var(--violet);border-color:#d8cff1}
+.empty{font-size:12px;color:var(--dim);line-height:1.6}
+
+/* 결정 · 조건부 · 미결 · 업무 */
+.segs{display:flex;gap:0;margin:14px 12px 0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
+.segs button{flex:1;height:30px;font-size:11.5px;font-weight:650;color:var(--ink2);border-right:1px solid var(--line)}
+.segs button:last-child{border-right:0}
+.segs button b{font:600 10px var(--mono);color:var(--faint);margin-left:4px;letter-spacing:-.02em}
+.segs button.on{background:#e8ecf3;color:var(--ink)}
+.segs button.on b{color:var(--ink2)}
+.cards{display:grid;gap:6px;padding:8px 12px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:9px 11px;cursor:pointer}
+.card:hover{border-color:#c5cddb}
+.card.sel{border-color:#8aa0e6;box-shadow:0 0 0 1px #8aa0e6}
+.card .k{font:650 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.card h4{margin-top:3px;font-size:13px;font-weight:720;line-height:1.4}
+.card .t{margin-top:2px;font-size:11.5px;color:var(--ink2);line-height:1.5}
+.card .m{margin-top:5px;font:500 10px var(--mono);color:var(--dim);letter-spacing:-.02em}
+.chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.chip{font-size:10.5px;font-weight:650;padding:1px 6px;border-radius:3px;background:#eef1f6;color:var(--ink2)}
+.k.Decision{color:#3d4a66}.k.Conditional{color:var(--violet)}.k.Open{color:#8a7bb8}.k.Action{color:var(--cyan)}
+
+.steps span{position:relative;overflow:hidden}
+.steps span.now{background:#d4ddf2}
+.steps span.now:after{content:"";position:absolute;inset:0;border-radius:2px;
+  background:linear-gradient(90deg,transparent,#8aa0e6,transparent);animation:sweep 1.1s linear infinite}
+@keyframes sweep{from{transform:translateX(-110%)}to{transform:translateX(110%)}}
+.stepl{font-variant-numeric:tabular-nums}
+.skel{margin-top:14px;display:grid;gap:9px}
+.skel i{display:block;height:10px;border-radius:5px;
+  background:linear-gradient(90deg,#e9edf3 25%,#f7f9fc 37%,#e9edf3 63%);background-size:400% 100%;
+  animation:shimmer 1.4s ease infinite}
+.skel i:nth-child(2){width:86%;animation-delay:.12s}
+.skel i:nth-child(3){width:58%;animation-delay:.24s}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){.steps span.now:after,.skel i{animation:none}}
+
+/* ── 오른쪽: AI 내부 관계 구조 ───────────────────── */
+.stage{position:relative;background:radial-gradient(ellipse 100% 95% at 50% 45%,#5B9CDD 0%,#5B9CDD 32%,#94BCE5 52%,#B3DBF0 74%,#DEF5FC 85%,#E7EEF2 95%,#FFFFFF 100%);
+  min-width:0;overflow:hidden}
+/* 아래쪽을 살짝 눌러 둔다 — 검색바가 바탕에서 떠 보이게 */
+.stage:after{content:'';position:absolute;left:0;right:0;bottom:0;height:32%;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(12,46,92,0) 0%,rgba(12,46,92,.05) 55%,rgba(12,46,92,.13) 100%)}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+canvas.drag{cursor:grabbing}
+.axes{position:absolute;left:18px;top:16px;font:500 10px var(--mono);color:rgba(255,255,255,.72);line-height:1.7;letter-spacing:.02em;pointer-events:none}
+.axes b{color:#fff;font-weight:600}
+.axes div{opacity:0;transform:translateY(3px);transition:opacity .6s,transform .6s}
+.axes div.on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.axes div{opacity:1;transform:none;transition:none}}
+.legend{position:absolute;right:18px;top:16px;display:grid;gap:4px;font:500 10px var(--mono);color:rgba(255,255,255,.8);pointer-events:none}
+.legend span{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.legend i{width:6px;height:6px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
+.legend .ln{width:18px;height:0;border-top:1px solid rgba(255,255,255,.85);border-radius:0;box-shadow:none}
+.legend .ln.d{border-top-style:dashed;border-color:rgba(255,255,255,.6)}
+.ask{position:absolute;left:50%;bottom:26px;z-index:2;transform:translateX(-50%);width:min(620px,calc(100% - 36px))}
+.field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
+  background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55);
+  box-shadow:0 6px 24px rgba(30,70,150,.14);
+  backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.field:focus-within{background:rgba(255,255,255,.58);border-color:rgba(255,255,255,.8)}
+.field input{flex:1;color:#13315f;font-size:14px}
+.field input::placeholder{color:rgba(19,49,95,.45)}
+.field button{height:32px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.85);color:#13315f;font-size:12px;font-weight:750}
+.field button:hover{background:#fff}
+.hint{position:absolute;left:18px;bottom:22px;font:500 10px var(--mono);color:rgba(255,255,255,.6);pointer-events:none}
+
+/* ── UI 숨기기 — 3D 와 질문창만 남긴다 (버튼 또는 H) ───────────────────── */
+.bare-btn{position:absolute;right:16px;bottom:22px;display:flex;align-items:center;gap:7px;height:30px;padding:0 12px;
+  border-radius:15px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);
+  font:600 11px var(--mono);color:#13315f;opacity:.75;transition:opacity .2s,background .2s}
+.bare-btn:hover{opacity:1;background:rgba(255,255,255,.6)}
+.bare-btn i{font-style:normal;font-size:12px;line-height:1}
+body.bare{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden}
+body.bare .side{display:none}
+body.bare .stage{grid-column:1/-1}
+body.bare .axes,body.bare .legend,body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
+/* 설계 보기 — 상단 왼쪽 알약 */
+.dsgn{position:absolute;left:18px;top:18px;z-index:2;height:28px;padding:0 14px;border-radius:14px;
+  background:rgba(255,255,255,.92);box-shadow:0 1px 5px rgba(20,54,104,.14);
+  font:600 11.5px SFKR,-apple-system,sans-serif;letter-spacing:-.02em;color:#13315F}
+.dsgn:hover{background:#fff}
+/* 세로 화면 — 검색바가 아래를 다 쓰므로 숨기기 버튼은 위로 올린다 */
+@media (max-aspect-ratio:1/1){.ask{bottom:52px}}
+
+/* ── 설계 들여다보기 ───────────────────── */
+.dbtn{margin-top:10px;height:26px;padding:0 10px;border-radius:5px;border:1px solid var(--line);background:var(--card);
+  font-size:11.5px;font-weight:650;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
+.dbtn:hover{border-color:#c5cddb;color:var(--ink)}
+.dbtn i{font:600 10px var(--mono);font-style:normal;color:var(--faint)}
+.design{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding-inline:24px}
+.dz{max-width:980px;margin:0 auto;padding-block:26px 64px}
+.dh{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding-block:14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.dh b{font-size:15px;font-weight:800;letter-spacing:.06em}
+.dh span{font-size:12px;color:var(--dim);font-weight:600}
+.dh button{margin-left:auto;height:28px;padding:0 12px;border-radius:6px;background:var(--ink);color:#fff;font-size:12px;font-weight:700}
+.dsec{margin-top:28px}
+.dsec>.lb{font:650 9.5px var(--mono);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.dsec>h2{margin-top:4px;font-size:17px;font-weight:780;letter-spacing:-.02em}
+.dsec>p.sub{margin-top:6px;font-size:13px;color:var(--ink2);line-height:1.85;max-width:680px;word-break:keep-all}
+.dgrid{margin-top:12px;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.dc{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 13px}
+.dc .k{font:650 9.5px var(--mono);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+.dc h4{margin-top:4px;font-size:13.5px;font-weight:740;line-height:1.4}
+.dc p{margin-top:6px;font-size:12.5px;line-height:1.85;color:var(--ink2);word-break:keep-all}
+.dc p+p{margin-top:10px}
+.dc code,.dsec code{font:600 10.5px var(--mono);color:var(--blue);letter-spacing:-.02em}
+.dc .f{margin-top:8px;padding:7px 9px;border-radius:4px;background:#f4f6fb;font:500 10.5px/1.6 var(--mono);color:var(--ink2);letter-spacing:-.02em;white-space:pre-wrap}
+.hero{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+.hero .q1{font-size:19px;font-weight:780;letter-spacing:-.03em;line-height:1.45}
+.hero .q2{margin-top:6px;font-size:12.5px;color:var(--ink2);line-height:1.65}
+.hero .stat{margin-top:14px;display:flex;flex-wrap:wrap;gap:18px}
+.hero .stat div{font:500 10px var(--mono);color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.hero .stat b{display:block;font:700 18px "Pretendard Variable",Pretendard,system-ui,sans-serif;color:var(--ink);letter-spacing:-.02em;text-transform:none}
+.axis{display:grid;grid-template-columns:260px minmax(0,1fr);gap:8px;margin-top:12px}
+.axis .fig{background:linear-gradient(180deg,#e7f0fb,#f7fbff);border-radius:6px;display:grid;place-items:center;height:250px;align-self:start;position:sticky;top:64px}
+.axis .rows{display:grid;gap:8px}
+.ax{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}
+.ax>b{height:34px;border-radius:5px;display:grid;place-items:center;font:700 14px var(--mono);color:#fff}
+.ladder{margin-top:8px;display:grid;gap:3px}
+.ladder div{display:grid;grid-template-columns:18px 82px minmax(0,1fr);gap:8px;align-items:center;font-size:11.5px;color:var(--ink2)}
+.ladder em{font:600 10px var(--mono);font-style:normal;color:var(--faint);text-align:right}
+.ladder b{font-weight:700;color:var(--ink)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;box-shadow:inset 0 0 0 1px rgba(30,35,44,.18)}
+.tbl{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tr{display:grid;grid-template-columns:150px 52px minmax(0,1fr) 110px;gap:10px;padding:8px 13px;border-top:1px solid var(--line2);align-items:center;font-size:12px}
+.tr:first-child{border-top:0}
+.tr.h{background:#f4f6fb;font:650 9.5px var(--mono);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+.tr code{font:650 11px var(--mono);letter-spacing:-.02em;color:var(--blue)}
+.tr .n{font:600 11px var(--mono);color:var(--ink2);text-align:right;letter-spacing:-.02em}
+.tr .bar{height:5px;border-radius:3px;background:#dfe5f5;overflow:hidden}
+.tr .bar i{display:block;height:100%;background:#8aa0e6}
+.tr .d{color:var(--ink2);line-height:1.5}
+.tr.key code{color:var(--violet)}
+.tr .tag{font:600 9px var(--mono);letter-spacing:.04em;color:var(--violet);border:1px solid #d8cff1;border-radius:3px;padding:1px 4px;margin-left:5px}
+.chain{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.chain .nd{padding:4px 8px;border-radius:4px;background:#f4f6fb;border:1px solid var(--line2);font-size:11.5px;color:var(--ink)}
+.chain .nd em{display:block;font:600 8.5px var(--mono);font-style:normal;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.chain .ed{font:650 9.5px var(--mono);color:var(--blue);letter-spacing:-.02em}
+.chain .ed.inf{color:var(--violet)}
+.steps5{margin-top:12px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.steps5 .dc h4{font-size:12.5px}
+.steps5 .dc .k{color:#8aa0e6}
+.rules{margin-top:12px;display:grid;gap:5px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));counter-reset:r}
+.rules div{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:9px 12px 9px 36px;position:relative;font-size:12px;line-height:1.55;color:var(--ink2)}
+.rules div b{color:var(--ink);font-weight:700}
+.rules div:before{counter-increment:r;content:counter(r,decimal-leading-zero);position:absolute;left:11px;top:10px;font:600 10px var(--mono);color:var(--faint)}
+@media (max-width:760px){.axis{grid-template-columns:1fr}.steps5{grid-template-columns:1fr 1fr}.tr{grid-template-columns:120px 40px minmax(0,1fr)}.tr .bw{display:none}}
+
+@media (max-width:900px){
+  body{grid-template-columns:1fr;grid-template-rows:58vh minmax(0,1fr);overflow:auto}
+  .stage{order:-1}
+  .axes,.legend,.hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){.steps span{transition:none}}
+
+/* 질문에서 답변까지: 읽는 순서가 보이는 안내 */
+.dz{max-width:1440px;padding-top:0}
+.dh{padding-block:18px}.dh span{color:var(--ink2)}
+.design .hero{margin-top:32px;padding:28px 30px;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0}
+.hero .q1{font-size:30px;line-height:1.4}.hero .q2{font-size:14px;max-width:740px;line-height:1.8;margin-top:12px}
+.design .eyebrow{font:600 10px var(--mono);letter-spacing:.12em;color:var(--blue);margin-bottom:12px}
+.design .stat{gap:24px;margin-top:22px}.design .stat b{font-size:20px;margin-bottom:4px}
+.design .dsec{margin-top:36px}.design .dsec>h2{font-size:21px}.design .dsec>p.sub{font-size:13px;line-height:1.8;margin-top:8px}
+.journey{list-style:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:22px}
+.journey>li{min-width:0;display:flex;flex-direction:column;gap:10px}
+.step-head{background:#e3e8f2;border:1px solid #d5deee;border-radius:8px;padding:16px;position:relative;min-height:86px}
+.step-head small{display:block;font:600 10px var(--mono);letter-spacing:.09em;color:var(--blue);margin-bottom:9px}
+.step-head h3{font-size:16px;line-height:1.4}.journey>li:last-child .step-head{background:var(--ink);border-color:var(--ink);color:white}.journey>li:last-child small{color:#b9c8f5}
+.journey>li:not(:last-child) .step-head:after{content:'→';position:absolute;right:-13px;top:34px;z-index:1;color:var(--dim);font-size:13px}
+.step-card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 16px;flex:1}
+.step-card h4{font-size:13px;line-height:1.5;margin-bottom:8px}.step-card p{font-size:13px;line-height:1.8;color:var(--ink2);word-break:keep-all;overflow-wrap:anywhere}
+.step-example{margin-top:16px;background:#f1f4fa;border-radius:5px;padding:11px 12px;font-size:12px;line-height:1.7;color:var(--blue)}
+.step-screen{padding:13px 15px;border:1px solid var(--line);border-radius:7px;font-size:12px;line-height:1.7;color:var(--ink2);min-height:94px;background:#e9edf5}.step-screen b{display:block;font-size:10px;color:var(--dim);margin-bottom:5px}
+.design-note{margin-top:16px;font-size:12px;line-height:1.8;color:var(--dim);max-width:980px}
+.design .dc{padding:20px;border-radius:8px}.design .dc h4{font-size:15px}.design .dc p{font-size:13px;line-height:1.8}.design .dgrid{gap:12px}.design .axis{gap:12px}.design .axis .fig{position:static;height:100%;min-height:250px}.design .axis .rows{gap:12px}
+.design details.reference{margin-top:28px;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:0 20px}.reference>summary{cursor:pointer;padding:20px 0;font-size:14px;font-weight:700}.reference .dsec{margin:6px 0 24px}.reference .tr{grid-template-columns:180px 42px minmax(0,1fr) 100px}
+.design .end-note{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;line-height:1.8;color:var(--ink2)}
+.design :focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+@media(max-width:1100px){.journey{grid-template-columns:repeat(3,minmax(0,1fr))}.journey>li:nth-child(3) .step-head:after{display:none}}
+@media(max-width:760px){.design{padding-inline:16px}.design .hero{padding:22px 0;margin-top:12px}.hero .q1{font-size:25px}.journey{grid-template-columns:1fr}.step-head{min-height:0;padding:14px 16px}.step-head small{margin-bottom:5px}.journey>li:not(:last-child) .step-head:after{display:none}.step-screen{min-height:0}.journey>li{margin-bottom:10px}.design .axis{grid-template-columns:1fr}.design .axis .fig{min-height:220px}.reference .tr{grid-template-columns:minmax(0,1fr) 32px}.reference .tr .d{grid-column:1/-1}.reference .tr.h span:nth-child(3){grid-column:1/-1}.dh span{font-size:11px}.design .stat{gap:16px}.design .dgrid{grid-template-columns:1fr}}
+
+
+/* ── 관계 맵 · 알고리즘 도식 ───────────────────── */
+.algo{margin-top:18px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px}
+.algo>div{display:grid;grid-template-rows:auto auto 1fr auto;min-width:0}
+.algo .hd{background:#3a3f52;color:#fff;border-radius:7px;padding:10px;text-align:center;font-size:12.5px;font-weight:720;letter-spacing:-.01em}
+.algo .st{margin-top:12px;padding-bottom:10px;border-bottom:1px solid var(--line2);text-align:center;font-size:12.5px;font-weight:720;color:var(--ink)}
+.algo .tx{padding:11px 2px 14px;font-size:11.5px;line-height:1.85;color:#6e7a8d;word-break:keep-all}
+.algo .fig{background:#f4f5fa;border-radius:10px;padding:14px 8px;display:grid;place-items:center;align-self:stretch}
+.algo .fig svg{display:block;width:100%;height:auto;max-width:195px}
+@media(max-width:1100px){.algo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.algo{grid-template-columns:1fr}}
+
+@font-face{font-family:SFKR;font-weight:400;src:local("SF Pro +KR Display Regular"),local("SFProKR-Regular")}
+@font-face{font-family:SFKR;font-weight:500;src:local("SF Pro +KR Display Medium"),local("SFProKR-Medium")}
+@font-face{font-family:SFKR;font-weight:600;src:local("SF Pro +KR Display Semibold"),local("SFProKR-Semibold")}
+@font-face{font-family:SFKR;font-weight:700;src:local("SF Pro +KR Display Bold"),local("SFProKR-Bold")}
+
+/* 쟁점 제목 쓰는 법 — 세 갈래 */
+.cases{margin-top:10px;display:grid;gap:6px}
+.cases>div{display:grid;grid-template-columns:200px 112px minmax(0,1fr);gap:12px;align-items:center;
+  padding:10px 12px;border-radius:6px;background:#f4f6fb;font-size:12px;color:#6e7a8d}
+.cases b{font-weight:720;color:var(--ink)}
+.cases em{font-style:normal;color:#4a5a7a;font-weight:600}
+@media(max-width:760px){.cases>div{grid-template-columns:1fr;gap:3px}}
+
+/* 카드 해부도 — 실제 웹 카드를 0.75배로 옮겨 왔다 */
+.anat{margin-top:14px;display:grid;gap:10px}
+.an{display:grid;grid-template-columns:264px minmax(0,1fr);gap:18px;align-items:start;
+  background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px}
+.an .fig{display:grid;gap:10px;justify-items:start}
+.an .cap{font:650 9.5px var(--mono);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+.an ol{list-style:none;display:grid;gap:9px;min-width:0}
+.an ol li{display:grid;grid-template-columns:19px minmax(0,1fr);gap:9px;font-size:12px;line-height:1.75;color:#6e7a8d;word-break:keep-all}
+.an ol li>i{font-style:normal;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;
+  background:#3a3f52;color:#fff;font:700 10px var(--mono);margin-top:3px}
+.an ol li b{color:var(--ink);font-weight:720}
+.an ol li em{font-style:normal;display:inline-block;margin-top:3px;padding:2px 7px;border-radius:4px;
+  background:#eef1f8;color:#4a5a7a;font:600 11px var(--mono);letter-spacing:-.02em}
+.an .none{color:var(--faint)}
+
+/* 실제 카드 */
+/* 관계 맵 카드 그대로 — 실제 값(320px 기준)에 0.75 를 곱했다. 글꼴·굵기·자간은 같다 */
+.mn{width:240px;border-radius:18.6px;padding:18.6px;position:relative;
+  font-family:SFKR,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,sans-serif;
+  display:flex;flex-direction:column;gap:6.23px;
+  background:radial-gradient(43.2% 64.5% at 49.8% 56.5%,#eaf0fb 3%,#f5f8ff 100%);
+  filter:drop-shadow(0 1.2px 3px rgba(0,0,0,.12))}
+.mn .who{width:24.75px;height:24.75px;border-radius:50%;background:#c7d3e4 center/cover;flex:none}
+.mn h5{margin:0;font-size:15.45px;font-weight:600;line-height:1.4;letter-spacing:-.465px;color:#2a2a2a;word-break:break-word}
+.mn p{margin:0;font-size:12.38px;font-weight:400;line-height:1.5;letter-spacing:-.075px;color:#525252;word-break:break-word}
+.mn .lab{display:flex;align-items:center;gap:4.65px;font-size:12.38px;font-weight:600;line-height:1.2;letter-spacing:-.098px}
+.mn .lab:before{content:"";width:3.68px;height:3.68px;border-radius:50%;background:currentColor;flex:none}
+.mn.issue{padding:10.95px 24.3px 12.15px 12.15px;border-radius:12.15px;gap:2.4px;background:#161919;filter:none}
+.mn.issue .lab,.mn.issue h5{color:#fff} .mn.issue h5{font-weight:500}
+.mn.res{background:radial-gradient(60% 60% at 50% 40%,#87d1ff 0%,#aedeff 49%,#d6ebff 98%)}
+.mn.res .lab,.mn.res h5{color:#1e6a98}
+.mn .more{margin:0;padding:0;border:0;font-size:9.75px;font-weight:400;letter-spacing:-.02em;color:#8a94a6}
+
+/* 선 규칙 */
+.lines{margin-top:12px;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.lines .dc .fg{margin-top:10px;background:#f4f5fa;border-radius:8px;padding:12px;display:grid;place-items:center}
+.lines .dc .fg svg{display:block;width:100%;height:auto;max-width:200px}
+@media(max-width:760px){.an{grid-template-columns:1fr}}
+
+/* 관계 맵 카드 생성 파이프라인 */
+.pipe{margin-top:12px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.pipe .p{position:relative;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 13px}
+.pipe .p:not(:last-child):after{content:'→';position:absolute;right:-9px;top:14px;z-index:1;color:var(--dim);font-size:12px}
+.pipe .p .k{font:650 9.5px var(--mono);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+.pipe .p h4{margin-top:4px;font-size:13px;font-weight:740;line-height:1.4}
+.pipe .p p{margin-top:5px;font-size:11.5px;line-height:1.6;color:var(--ink2);word-break:keep-all}
+.pipe .p .f{margin-top:8px;padding:6px 8px;border-radius:4px;background:#f4f6fb;font:500 10px/1.5 var(--mono);color:var(--ink2);letter-spacing:-.02em;overflow-wrap:anywhere}
+.pipe .p.loop{border-color:#d8cff1;background:#f7f4fd}
+.pipe .p.loop .k{color:var(--violet)}
+.cardmap{margin-top:12px;display:grid;gap:3px}
+.cardmap div{display:grid;grid-template-columns:96px 74px minmax(0,1fr);gap:10px;align-items:center;
+  padding:8px 13px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink2)}
+.cardmap div:first-child{border-top:0}
+.cardmap b{font-weight:700;color:var(--ink)}
+.cardmap em{font:600 10px var(--mono);font-style:normal;letter-spacing:-.02em}
+.cardmap .yes em{color:var(--blue)} .cardmap .no em{color:var(--violet)}
+.grid2{margin-top:12px;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+@media(max-width:1100px){.pipe{grid-template-columns:repeat(2,minmax(0,1fr))}.pipe .p:after{display:none}}
+@media(max-width:760px){.pipe{grid-template-columns:1fr}.cardmap div{grid-template-columns:1fr;gap:3px}}
+
+.flow-phases{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-top:22px}.flow-phases span{padding:10px 14px;border-left:3px solid var(--blue);background:#e3e8f2;color:var(--blue);font-size:12px;font-weight:700}.flow-phases span:last-child{border-color:var(--violet);color:var(--violet);background:#ece8f5}
+.flow-phases+.journey{margin-top:12px}.step-input{font-size:12px;line-height:1.7;padding:12px 14px;border:1px solid var(--line);border-radius:6px;min-height:80px;color:var(--ink2)}.step-input b{display:block;font-size:10px;color:var(--dim);margin-bottom:4px}.step-example{white-space:pre-line;overflow-wrap:anywhere}.step-engine{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:12px;font-size:11px;color:var(--ink2);line-height:1.6;min-height:60px}.design-note b{color:var(--ink2)}
+@media(min-width:1101px){.journey>li{display:grid;grid-template-rows:86px 86px 1fr 1fr 94px 64px}.step-head{padding:14px}.step-card{padding:16px 14px}}
+@media(max-width:1100px) and (min-width:761px){.journey{grid-template-columns:repeat(5,minmax(230px,1fr));overflow-x:auto;padding-bottom:16px;scroll-snap-type:x proximity}.journey>li{scroll-snap-align:start}.flow-phases{grid-template-columns:1fr 1fr}.journey>li:nth-child(3) .step-head:after{display:block}}
+@media(max-width:760px){.flow-phases{grid-template-columns:1fr}.step-input,.step-engine{min-height:0}}
+
+/* 단계별 데이터 도식 */
+.journey .step-head{display:flex;align-items:center;gap:10px;min-height:76px;padding:16px}.step-number{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:50%;background:var(--ink2);color:white;font:700 13px var(--mono)}.journey>li:last-child .step-number{background:white;color:var(--ink)}.journey .step-head h3{font-size:15px}.journey .step-card{background:#f4f5fa;border-color:#e9ecf3;padding:18px 15px}.step-card h4{margin-bottom:16px}.step-diagram{font-size:12px;line-height:1.6;color:var(--ink2)}.flow-box{background:white;border:1px solid var(--line2);border-radius:6px;padding:10px 9px;text-align:center;word-break:keep-all;overflow-wrap:anywhere}.flow-box.accent{background:#e5ebf7;border-color:#d8e0f0;color:#365493;font-weight:650}.flow-down{text-align:center;padding:8px 0;color:var(--dim);font-size:11px}.data-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.data-tags span{background:white;border:1px solid var(--line2);padding:5px 10px;border-radius:5px}.data-rows{display:grid;gap:5px;margin:10px 0}.data-rows>div{display:grid;grid-template-columns:48px minmax(0,1fr);gap:5px}.data-rows dt{background:#e4e9f3;color:#566682;font-size:11px;display:grid;place-items:center;border-radius:4px;padding:7px 3px}.data-rows dd{margin:0;background:white;padding:7px 9px;border-radius:4px;overflow-wrap:anywhere}.diagram-caption{font-size:11px;color:var(--dim);text-align:center;margin-top:12px;line-height:1.7}.relation-row{display:flex;align-items:center;gap:5px;margin-bottom:12px}.relation-row>span{flex:1;text-align:center;background:white;border:1px solid var(--line2);border-radius:5px;padding:8px 3px;font-size:11px}.relation-row i{font-style:normal;text-align:center;color:var(--blue);font-size:11px}.relation-row small{display:block;font:500 8px/1.5 var(--mono)}.line-key{display:grid;gap:8px}.line-key span{display:flex;gap:10px;align-items:center;background:white;padding:8px;border-radius:5px}.line-key i{width:24px;border-top:2px solid var(--blue)}.line-key i.dashed{border-top-style:dashed;border-color:var(--violet)}.route-option{padding:10px;background:white;border-radius:6px;margin-bottom:8px}.route-option b,.route-option span,.route-option small{display:block}.route-option b{font-size:12px;margin-bottom:3px}.route-option small{font:500 9px/1.7 var(--mono);color:var(--blue);overflow-wrap:anywhere;margin-top:5px}.result-tags{margin-top:12px}.result-tags span{font-size:11px}.output-arrow{text-align:center;color:var(--dim);line-height:18px}.journey .step-screen{min-height:76px}.journey .step-input{min-height:64px}.journey .step-engine{min-height:48px;font-size:10.5px}
+@media(min-width:1101px){.journey>li{grid-template-rows:76px 70px auto auto 18px 80px 52px;align-content:start}.journey .step-card{min-height:265px}.journey .step-head:after{top:28px}}
+@media(max-width:1100px){.journey .step-card{flex:initial}.journey .step-head{min-height:76px}}
+
+/* 짧은 설명과 예시를 중심으로 한 단계 카드 */
+.journey>li{display:flex;flex-direction:column;gap:12px}.journey .step-head{justify-content:center;background:#e2e5eb;border-color:transparent;border-radius:12px;min-height:72px}.journey>li:nth-child(3) .step-head,.journey>li:nth-child(4) .step-head{background:#adb3bd;color:white}.journey>li:nth-child(3) .step-number,.journey>li:nth-child(4) .step-number{background:white;color:#747d8b}.journey>li:last-child .step-head{background:var(--ink);color:white}.journey .step-head h3{font-size:17px}.logic-card{background:#f4f4fa;border-radius:10px;padding:22px 18px}.logic-card h4{font-size:15px;font-weight:700;line-height:1.5;margin-bottom:8px}.logic-card p{font-size:13px;line-height:1.8;color:#727d90;margin-bottom:20px;word-break:keep-all}.logic-example{background:white;padding:10px 12px;border-radius:7px;font-size:12px;line-height:1.75;color:#73809a;word-break:keep-all}.logic-example+.logic-example{margin-top:8px}.logic-result{background:#e2e8f3;border-radius:9px;padding:18px;font-size:14px;font-weight:650;line-height:1.6;color:var(--ink2)}.journey .step-engine{background:white;font-size:12px;padding:14px;border-radius:7px;color:var(--ink2)}.implementation-note{margin-top:22px;font-size:12px;color:var(--dim);line-height:1.8}.implementation-note summary{cursor:pointer}.implementation-note p{max-width:850px;margin-top:10px}
+@media(min-width:1101px){.journey>li{display:grid;grid-template-rows:72px 1fr 1fr 18px 82px 54px;gap:12px}.logic-card{min-height:255px}.journey .step-head:after{top:25px}}
+
+.entity-tabs{display:flex;gap:6px;margin:7px 12px 0}.entity-tabs button{flex:1;border:1px solid var(--line);background:white;border-radius:5px;padding:7px;font-size:11px;color:var(--ink2)}.entity-tabs button.on{background:#e3e8f4;border-color:#8aa0e6}.entity-tabs b{font:500 10px var(--mono);color:var(--dim)}.person-meta{margin-top:10px;background:#eef1f7;padding:10px;border-radius:6px;line-height:1.8;font-size:12px}.person-meta small{color:var(--dim)}.inspect-graph{margin-top:12px;border:1px solid var(--line);background:#edf1fa;border-radius:5px;padding:8px 10px;color:var(--blue);font-size:12px}.graph-example{margin-top:14px}.example-nodes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.example-nodes button{background:#edf1fa;border:1px solid var(--line);border-radius:6px;padding:9px 12px;text-align:left;font-size:12px}.example-nodes span{display:block;color:var(--dim);font-size:10px;margin-bottom:4px}.flow-phases{grid-template-columns:4fr 1fr}.logic-card{padding:20px 16px}.logic-card p{margin-bottom:14px}.logic-example{color:#5d6b83}.logic-card h4{font-size:14px}.journey .step-head h3{font-size:15px}
+@media(min-width:1101px){.journey>li{grid-template-rows:72px 1fr 1fr 1fr 18px 92px 54px}.logic-card{min-height:255px}}
+@media(max-width:760px){.flow-phases{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<section class="design" id="design" hidden aria-label="온톨로지 설계"></section>
+
+<aside class="side">
+  <div class="top">
+    <div class="brand"><b>IRIS</b><span>Meeting Ontology</span><i>TEST</i></div>
+    <div class="mt" id="mtitle"></div>
+    <div class="mm" id="mmeta"></div>
+    <button class="dbtn" id="dopen" type="button">설계 들여다보기 <i>→</i></button>
+  </div>
+  <div class="scroll">
+    <div class="box" id="box" hidden></div>
+    <p class="empty" id="sidehint">오른쪽 맵 아래에 질문을 적으면, 그래프를 따라 찾은 답이 여기에 나옵니다.<br>
+      점을 누르면 그 점 하나만 밝아집니다 — 연결은 질문했을 때만 그려집니다.</p>
+  </div>
+</aside>
+
+<main class="stage" id="stage">
+  <canvas id="cv"></canvas>
+  <div class="axes"><div id="ax-x"><b>X</b> 회의 시간 →</div><div id="ax-y"><b>Y</b> 정보 역할 ↑ 근거 · 쟁점 · 주장 · 결론 · 업무</div><div id="ax-z"><b>Z</b> 관계 밀도 · 영향 범위</div></div>
+  <div class="legend">
+    <span>Evidence · Discussion <i style="background:#cfe4ff"></i></span>
+    <span>Concern · Condition <i style="background:#e0d8ff"></i></span>
+    <span>Decision · Outcome <i style="background:#ffffff"></i></span>
+    <span>Action <i style="background:rgba(0,0,0,.2)"></i></span>
+    <span>◇ 참여자 · □ 파트 · ○ 일정</span><span>실선 · 발언에 명시 <i class="ln"></i></span>
+    <span>점선 · 맥락에서 추론 <i class="ln d"></i></span>
+  </div>
+  <div class="hint">drag 회전 · shift+drag(또는 오른쪽 끌기) 이동 · wheel 확대 · 노드에 올리면 이름 · dblclick 초기화</div>
+  <button class="dsgn" id="dopen2" type="button">설계 보기</button>
+  <div class="ask">
+    <form class="field" id="askf"><input id="askq" autocomplete="off" placeholder="이 회의에 대해 무엇이든 물어보세요"><button>탐색</button></form>
+  </div>
+</main>
+
+<script src="graph.js?v=20260927-provenance"></script>
+<script>
+"use strict";
+/* 공개본은 graph.js 자체가 이미 가명으로 적혀 있다 — 대조표는 이 맥에만 둔다 */
+const ALIAS = [];
+const G = JSON.parse(ALIAS.reduce((t, [a, b]) => t.split(a).join(b), JSON.stringify(window.GRAPH)));
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const secs = s => s == null ? null : String(s).split(':').reverse().reduce((a, v, i) => a + (+v) * [1, 60, 3600][i], 0);
+
+/* ================= 1. 그래프 ================= */
+const NODES = G.nodes, EDGES = G.edges, BY = {};
+NODES.forEach((n, i) => { BY[n.id] = n; n.out = []; n.in = []; n.sec = n.sec ?? secs(n.t); n.idx = i; });
+EDGES.forEach(e => { e.s = BY[e.source]; e.d = BY[e.target]; e.s.out.push(e); e.d.in.push(e); });
+const TOPIC = Object.fromEntries(G.topics.map(t => [t.id, t]));
+const TEAM_OF = Object.fromEntries(G.participants.map(p => [p.name, p.team]));
+const CTX = new Set(['Participant', 'Team', 'Meeting']);
+
+const LEVEL = { Evidence: 0, Concern: 0, Question: 0, Issue: 1, Claim: 2, Proposal: 2, Condition: 2,
+  Decision: 3, Conditional: 3, Open: 3, Action: 4, Participant: 5.35, Team: 5, Meeting: 3.4 };
+/* 파란 바닥 위에 올리는 점이라 전부 밝은 색만 쓴다 — 어두운 색은 선과 글자 몫 */
+const COLOR = { Evidence: '#cfe4ff', Question: '#c3d9ff', Issue: '#e4f0ff', Claim: '#d6e8ff', Proposal: '#cbe1ff',
+  Concern: '#e0d8ff', Condition: '#d4c9ff', Conditional: '#eae4ff', Decision: '#ffffff', Open: '#dcd4f7',
+  Action: '#000000', Participant: '#eaf2fd', Team: '#e0ecfb', Meeting: '#d2e4f9' };
+/* 밝은 바탕에서 민트는 묻혀 보여서 업무만 검정으로 돌린다. 진하지 않게 20% 로만 찍는다 */
+const NODE_A = { Action: .2 };
+const SIZE = { Decision: 4.4, Conditional: 3.9, Issue: 3.3, Action: 3.4, Open: 3.3, Evidence: 2.5, Proposal: 2.6,
+  Claim: 2.6, Concern: 2.4, Condition: 2.3, Question: 2.3, Participant: 3.2, Team: 3.6, Meeting: 3 };
+const KO = { Evidence: '근거', Question: '질문', Issue: '쟁점', Claim: '주장', Proposal: '제안', Concern: '우려',
+  Condition: '조건', Conditional: '조건부', Decision: '결정', Open: '미결', Action: '업무', Participant: '참여자', Team: '파트', Meeting: '회의' };
+const VERB = { SUPPORTS: '뒷받침', CHALLENGES: '문제 제기', OPPOSES: '반박', REVISES: '수정', REPLACES: '대체',
+  ADOPTED_AS: '채택', RESOLVES: '해결', QUESTIONS: '질문', RESPONDS_TO: '응답', DERIVED_FROM: '파생',
+  LEADS_TO: '이어짐', CREATES: '업무 생성', ASSIGNED_TO: '담당', REQUIRES: '전제', REMAINS_UNRESOLVED: '미결 이월',
+  CLARIFIES: '구체화', REFERENCES: '참조', CONVERGES_WITH: '수렴', AFFECTS: '영향', RESPONSIBLE_FOR: '책임', MEMBER_OF: '소속', SAID_BY: '발언자' };
+const KEY = new Set(['ADOPTED_AS', 'RESOLVES', 'REVISES', 'REPLACES', 'CREATES']);
+/* 관계는 세 갈래로 묶어 부른다 — 선 위에는 이 이름만 띄운다 */
+const AXIS_EN = { discussion: 'Dynamics', outcome: 'Outcomes', participant: 'Actors' };
+/* 책임자 표시 — 공개본에는 참가자 사진을 올리지 않는다 */
+const FACE_SRC = { 'Yebin': 'av1.svg', 'Lina': 'av2.svg', 'James': 'av3.svg', 'K': 'av4.svg' };   /* 공개본은 사진이 아니라 글자 동그라미 */
+const FACE = {};
+for (const k in FACE_SRC) { const im = new Image(); im.src = FACE_SRC[k]; FACE[k] = im; }
+
+/* 위치 — 무작위 배치가 아니라 좌표마다 뜻이 있다 (가이드 12절)
+   X 시간 · Y 위계 · Z 관계 밀도. 같은 칸에 겹치지 않게만 id 해시로 살짝 흩는다. */
+const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
+const W = 2000, DUR = G.meeting.sec;
+(() => {
+  const body = NODES.filter(n => !CTX.has(n.type));
+  body.forEach(n => {
+    const nb = new Set(), parts = new Set(n.parts), who = new Set();
+    [...n.out.map(e => e.d), ...n.in.map(e => e.s)].forEach(m => {
+      if (m.type === 'Participant' || m.type === 'Team') { parts.add(m.type === 'Team' ? m.label : TEAM_OF[m.label]); return; }
+      nb.add(m.id); (m.parts || []).forEach(p => parts.add(p)); if (m.speaker) who.add(m.speaker);
+    });
+    n.density = nb.size + 1.6 * (parts.size - 1) + 0.8 * who.size;
+    n.degree = n.out.length + n.in.length;
+  });
+  const rank = body.slice().sort((a, b) => a.density - b.density);
+  rank.forEach((n, i) => { n.zPct = i / (rank.length - 1); });
+  body.forEach(n => {
+    const j = hash(n.id), k = hash(n.id + '~');
+    n.x = (n.sec / DUR - .5) * W + (j - .5) * 26;
+    n.y = (LEVEL[n.type] - 2.2) * 175 + (k - .5) * 46;
+    n.z = -(n.zPct - .5) * 1050 + (j - .5) * 70;          /* 관계가 촘촘할수록 앞으로(보는 사람 쪽) */
+  });
+  const people = NODES.filter(n => n.type === 'Participant'), teams = NODES.filter(n => n.type === 'Team');
+  const meanX = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
+  teams.forEach(t => { t.degree = t.in.length + t.out.length;
+    t.x = meanX(t.in.filter(e => !CTX.has(e.s.type)).map(e => e.s.x)); t.y = (LEVEL.Team - 2.2) * 175; t.z = 380; });
+  people.forEach((p, i) => { p.degree = p.in.length + p.out.length;
+    const own = NODES.filter(n => n.speaker === p.label && !CTX.has(n.type));
+    p.x = meanX(own.map(n => n.x)) + (i - 1.5) * 60; p.y = (LEVEL.Participant - 2.2) * 175; p.z = -260 + i * 60; });
+  NODES.filter(n => n.type === 'Meeting').forEach((m, i) => { m.degree = m.in.length; m.x = W / 2 + 170 + i * 80;
+    m.y = (LEVEL.Meeting - 2.2) * 175 + i * 40; m.z = (i - 1) * 180; });
+  NODES.forEach(n => { n.r = SIZE[n.type] * (0.8 + 0.14 * Math.sqrt(n.degree || 1)); n.glow = 0; n.lit = 0; });
+  EDGES.forEach(e => { e.lit = 0; });
+})();
+
+/* ================= 2. 렌더 ================= */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let DPR = 1, CW = 0, CH = 0, CY = 0;   /* CY — 점이 모이는 세로 가운데. 세로 화면에서는 검색바 몫만큼 위로 올린다 */
+const MONO = 'ui-monospace,"SF Mono",Menlo,Consolas,monospace';   /* 번호·시각은 모노로 — 화면 위 수치처럼 */
+const SANS = 'SFKR,-apple-system,"Apple SD Gothic Neo",sans-serif';   /* 한글은 SF Pro +KR Display */
+const px = v => Math.round(v) + .5;                                /* 1px 선이 흐려지지 않게 반 칸 밀어 둔다 */
+/* 광각 · 가까운 카메라 — 앞의 점은 크고 뒤의 점은 작고 흐리게. (예전 값: 초점 1.25 · 거리 2650) */
+const FOCAL = .36, NEAR = 860;
+const fog = p => Math.max(.18, Math.min(1, 1.55 - p.zc / (cam.dist * 1.25)));
+const cam = { yaw: 0.52, pitch: -0.2, dist: NEAR, tx: 80, ty: 60, tz: 0 };   /* X 오른쪽 · Y 위 · Z 왼쪽 앞 으로 보이는 각도 */
+const home = { ...cam };
+let camTo = null, lastInput = 0;
+function resize() {
+  const r = cv.getBoundingClientRect(); DPR = Math.min(2, devicePixelRatio || 1);
+  CW = r.width; CH = r.height; cv.width = CW * DPR; cv.height = CH * DPR;
+  CY = CH > CW * 1.05 ? CH * .5 : CH * .46;   /* 세로 화면에서는 로고가 화면 정중앙에 오도록 */
+}
+addEventListener('resize', resize);
+
+/* 빛 점 스프라이트 — 색마다 한 번만 그려 둔다 */
+const SPR = {};
+function sprite(col) {
+  if (SPR[col]) return SPR[col];
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, col); gr.addColorStop(.3, col + '88'); gr.addColorStop(.62, col + '1f'); gr.addColorStop(1, col + '00');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return (SPR[col] = c);
+}
+
+/* 공간 한가운데에 놓인 글자 로고 — 화면에 붙인 것이 아니라 3D 좌표에 있다 */
+const LOGO_W = 170;                                  /* 공간 단위 폭. 가까울수록 커 보인다 */
+function drawLogo(p, a) {
+  if (a <= .01) return;
+  const w = LOGO_W * p.s;
+  ctx.save();
+  /* 글자 뒤에 옅은 빛 — 번진 도형을 깔아 둔 것처럼 */
+  const gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, w * 1.5);
+  gr.addColorStop(0, 'rgba(232,246,255,.62)'); gr.addColorStop(.42, 'rgba(226,243,255,.30)');
+  gr.addColorStop(1, 'rgba(226,243,255,0)');
+  ctx.globalAlpha = a; ctx.fillStyle = gr;
+  ctx.fillRect(p.x - w * 1.5, p.y - w * 1.5, w * 3, w * 3);
+  ctx.font = '600 ' + (w * .46).toFixed(2) + 'px ' + SANS;
+  ctx.letterSpacing = (w * .055).toFixed(2) + 'px';   /* 자간은 글자 크기를 따라간다 */
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('IRIS', p.x + w * .028, p.y);          /* 끝 자간만큼 오른쪽으로 밀리는 것을 되돌린다 */
+  ctx.restore();
+  ctx.letterSpacing = '0px';
+}
+
+/* 배경 먼지 — 구조와 무관한 아주 흐린 점 */
+const DUST = Array.from({ length: 320 }, (_, i) => ({ x: (hash('dx' + i) - .5) * 3600, y: (hash('dy' + i) - .5) * 1800, z: (hash('dz' + i) - .5) * 2600, a: .05 + hash('da' + i) * .12 }));
+
+function project(x, y, z) {
+  x -= cam.tx; y -= cam.ty; z -= cam.tz;
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const x1 = x * cy - z * sy, z1 = x * sy + z * cy;
+  const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+  const f = Math.min(CW, CH) * FOCAL, zc = z2 + cam.dist;
+  if (zc < 60) return null;
+  const s = f / zc;
+  return { x: CW / 2 + x1 * s, y: CY - y2 * s, s, zc };
+}
+
+let dim = 0, dimTo = 0, viewDim = 0, viewDimTo = 0, hover = null;
+
+/* ── 첫 진입 연출 ───────────────────────────────
+   0.0s X(시간) → 0.7s Y(위계) → 1.4s Z(관계 밀도) 축이 차례로 그어지고,
+   2.1s부터 점이 회의 시간 순서대로 X축 위에서 떠올라 자기 위계(Y)와 깊이(Z)로 간다.
+   선은 처음부터 깔아 두지 않는다 — 물었을 때 그 답이 지나간 길만 켜진다. */
+const INTRO = { t0: performance.now(), skip: matchMedia('(prefers-reduced-motion: reduce)').matches };
+const AX_AT = [0, 700, 1400], AX_DUR = 900, PT_AT = 2100, PT_SPAN = 2300, PT_DUR = 900, EDGE_AT = 0, EDGE_DUR = 1;
+/* 공간 한가운데는 로고 몫으로 비워 둔다. 바깥은 거의 그대로, 중심에 가까울수록 밀려난다 */
+const HC = { x: 80, y: 60, z: 0 }, HOLLOW = 230;
+NODES.forEach(n => {
+  if (n.x == null) return;
+  const dx = n.x - HC.x, dy = n.y - HC.y, dz = n.z - HC.z;
+  const r = Math.hypot(dx, dy, dz) || 1, k = Math.hypot(r, HOLLOW) / r;
+  n.x = HC.x + dx * k; n.y = HC.y + dy * k; n.z = HC.z + dz * k;
+});
+
+/* 업무를 맡거나 책임지는 사람이 붙어 있는 노드 — 그 사람 얼굴을 띄운다 */
+NODES.forEach(n => {
+  for (const e of [...n.out, ...n.in]) {
+    if (e.type !== 'ASSIGNED_TO' && e.type !== 'RESPONSIBLE_FOR') continue;
+    const o = e.s === n ? e.d : e.s;
+    if (o.type === 'Participant') { n.owner = o.label; break; }
+  }
+});
+
+const BOX = (() => {
+  const b = NODES.filter(n => !CTX.has(n.type));
+  const mm = k => [Math.min(...NODES.map(n => n[k])), Math.max(...NODES.map(n => n[k]))];
+  const [x0, x1] = mm('x'), [y0, y1] = mm('y'), [z0, z1] = mm('z');
+  return { x0: -W / 2 - 60, x1: x1 + 40, y0: y0 - 50, y1: y1 + 60, zBack: z1 + 60, zFront: z0 - 60, body: b };
+})();
+NODES.forEach(n => {
+  n.appear = CTX.has(n.type) ? PT_AT + PT_SPAN + 200 : PT_AT + (n.sec / DUR) * PT_SPAN;
+});
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const outCubic = k => 1 - (1 - k) ** 3;
+const since = now => INTRO.skip ? 1e9 : now - INTRO.t0;
+function drawAxes(now) {
+  const t = since(now), O = [BOX.x0, BOX.y0, BOX.zBack];      /* 원점: 시간 0 · 위계 바닥 · 밀도 낮음(뒤) */
+  const ends = [[BOX.x1, BOX.y0, BOX.zBack], [BOX.x0, BOX.y1, BOX.zBack], [BOX.x0, BOX.y0, BOX.zFront]];
+  const po = project(...O); if (!po) return;
+  ctx.lineWidth = 1;
+  ends.forEach((E, i) => {
+    const k = outCubic(clamp01((t - AX_AT[i]) / AX_DUR)); if (k <= 0) return;
+    const pe = project(O[0] + (E[0] - O[0]) * k, O[1] + (E[1] - O[1]) * k, O[2] + (E[2] - O[2]) * k); if (!pe) return;
+    const al = (.34 + .3 * (1 - clamp01((t - AX_AT[i] - AX_DUR) / 1200))) * (1 - dim * .6);
+    const g = ctx.createLinearGradient(po.x, po.y, pe.x, pe.y);
+    g.addColorStop(0, `rgba(255,255,255,${al})`); g.addColorStop(1, `rgba(255,255,255,${al * .25})`);
+    ctx.strokeStyle = g; ctx.beginPath(); ctx.moveTo(po.x, po.y); ctx.lineTo(pe.x, pe.y); ctx.stroke();
+    if (k < 1) ctx.drawImage(sprite('#ffffff'), pe.x - 10, pe.y - 10, 20, 20);   /* 그어지는 끝의 빛 */
+    // 눈금 — X 는 10분마다, Y 는 위계 단계마다. 글자는 없다
+    const ticks = i === 0 ? Array.from({ length: Math.floor(DUR / 600) + 1 }, (_, j) => (j * 600 / DUR - .5) * W)
+      : i === 1 ? [0, 1, 2, 3, 4].map(l => (l - 2.2) * 175) : [];
+    ticks.forEach(v => {
+      const q = i === 0 ? [v, BOX.y0, BOX.zBack] : [BOX.x0, v, BOX.zBack];
+      const frac = i === 0 ? (v - O[0]) / (E[0] - O[0]) : (v - O[1]) / (E[1] - O[1]);
+      if (frac > k) return;
+      const pq = project(...q); if (!pq) return;
+      ctx.fillStyle = `rgba(255,255,255,${al * 1.2})`; ctx.fillRect(pq.x - 1, pq.y - 1, 2, 2);
+    });
+  });
+  // 오른쪽 위 설명 줄도 축과 같은 박자로 켠다
+  ['#ax-x', '#ax-y', '#ax-z'].forEach((id, i) => { const el = $(id); if (el && t >= AX_AT[i]) el.classList.add('on'); });
+}
+const particles = [];
+const DRIFT = 0.0000315;            /* rad/ms — 한 바퀴 약 3분 20초 */
+const ease = (v, to, k) => v + (to - v) * k;
+let lastT = performance.now();
+const K = tau => 1 - Math.exp(-Math.min(120, performance.now() - lastT) / tau);
+
+/* 화면 위에 아주 옅은 블록 격자 */
+function hud() {
+  const G = 12;
+  ctx.save(); ctx.setLineDash([]); ctx.shadowBlur = 0;
+  ctx.lineWidth = 1; ctx.lineCap = 'butt'; ctx.strokeStyle = '#ffffff';
+  ctx.globalAlpha = .028;
+  ctx.beginPath();
+  for (let x = G; x < CW; x += G) { ctx.moveTo(px(x), 0); ctx.lineTo(px(x), CH); }
+  for (let y = G; y < CH; y += G) { ctx.moveTo(0, px(y)); ctx.lineTo(CW, px(y)); }
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* 가까이 온 점을 흰 네모로 집는다 — 블롭 트래킹처럼. 이름표는 옆으로 빼서 선으로 잇는다 */
+function track(n, p, r, k, on, al, now) {
+  const col = COLOR[n.type];
+  const S = Math.round(Math.max(9, Math.min(48, 2.4 * (cam.dist / p.zc) ** 2.3)));   /* 거리의 제곱 이상으로 벌린다 */
+  const x = Math.round(p.x), y = Math.round(p.y);
+  ctx.save(); ctx.setLineDash([]); ctx.shadowBlur = 0;
+  ctx.lineWidth = 1; ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
+
+  ctx.globalAlpha = .10 * k;                     /* 흰 10% 로 채운 정사각형 */
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(x - S, y - S, S * 2, S * 2);
+  ctx.globalAlpha = (on ? 1 : .85) * k;          /* 가는 흰 테두리 */
+  ctx.strokeStyle = '#ffffff';
+  ctx.strokeRect(px(x - S), px(y - S), S * 2 - 1, S * 2 - 1);
+
+  /* 번호·시각은 네모 위, 이름은 네모 아래 — 둘 다 네모 한가운데에 맞춘다 */
+  const tx = `${KO[n.type]} · ${n.label}`;
+  const meta = `#${String(n.idx).padStart(3, '0')}${n.t ? '  ' + n.t : ''}`;
+  ctx.textAlign = 'center';
+
+  ctx.font = '500 8.5px ' + MONO; ctx.letterSpacing = '-0.02em';
+  ctx.globalAlpha = (on ? .8 : .62) * k; ctx.fillStyle = col;
+  ctx.fillText(meta, x, y - S - 7);
+
+  ctx.font = (on ? '600 11.5px ' : '500 11px ') + SANS; ctx.letterSpacing = '-0.02em';
+  const w = Math.ceil(ctx.measureText(tx).width);
+  const face = n.owner && FACE[n.owner], D = 15, aw = (face && face.naturalWidth) ? D + 6 : 0;
+  if (on) {   /* 올린 점은 바탕을 깔아 또렷하게 */
+    ctx.globalAlpha = .62; ctx.fillStyle = '#0b1c3c';
+    ctx.fillRect(x - (w + aw) / 2 - 7, y + S + 6, w + aw + 14, 20);
+    ctx.globalAlpha = .5; ctx.strokeStyle = col;
+    ctx.strokeRect(px(x - (w + aw) / 2 - 7), px(y + S + 6), w + aw + 14, 20);
+  }
+  ctx.globalAlpha = (on ? 1 : .95) * k * Math.max(.45, al);
+  ctx.fillStyle = '#ffffff'; ctx.fillText(tx, x + aw / 2, y + S + 20);
+  if (aw) ctx.drawImage(face, x - (w + aw) / 2, y + S + 16 - D / 2, D, D);
+  ctx.restore();
+}
+
+function frame() {
+  requestAnimationFrame(frame);
+  const now = performance.now();   /* 파동·입자 시작 시각과 같은 시계를 쓴다 (rAF 시각은 조금 이를 수 있다) */
+  const kCam = K(260), kDim = K(220), kGlow = K(170), kSway = K(800), kView = K(190), kLbl = K(130);
+  const dt = Math.min(120, now - lastT);
+  lastT = now;
+  // 카메라
+  if (camTo) {
+    if (ORBIT) {                                   /* 목표 각도를 아주 천천히 흔들면 카메라가 그 뒤를 부드럽게 따라간다 */
+      const dt = now - ORBIT.t0;
+      camTo.yaw = ORBIT.yaw0 + Math.sin(dt * .00011) * .16;
+      camTo.pitch = ORBIT.pitch0 + Math.sin(dt * .00007) * .04;
+    }
+    for (const k in camTo) cam[k] = ease(cam[k], camTo[k], kCam);
+  }
+  else if (now - lastInput > 5000 && !Q.active && !INTRO.skip) {   /* 움직임 줄이기를 켠 사람은 돌지 않는다 */
+    /* 손을 떼면 한 방향으로 아주 천천히 돈다 — 4초에 걸쳐 속도가 붙고, 위아래로 조금 뜬다 */
+    const k = clamp01((now - lastInput - 5000) / 4000);
+    cam.yaw += DRIFT * dt * k; home.yaw = cam.yaw;
+    cam.pitch = ease(cam.pitch, home.pitch + Math.sin(now * 0.00008) * 0.045, kSway);
+  }
+  dim = ease(dim, dimTo, kDim); viewDim = ease(viewDim, viewDimTo, kView);
+  NODES.forEach(n => { n.glow = ease(n.glow, n.glowTo || 0, kGlow); });
+  EDGES.forEach(e => { e.lit = ease(e.lit, e.litTo || 0, kGlow); });
+
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  /* 바탕 — 가운데가 밝은 타원 그라디언트 (피그마 708:5355) */
+  const rx = CW * .70;
+  ctx.save();
+  ctx.translate(CW / 2, CY); ctx.scale(1, (CH * .62) / (CW * .70));   /* 밝은 한가운데가 로고 자리와 맞도록 */
+  const bg = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  bg.addColorStop(0, '#8DD3FF'); bg.addColorStop(.45, '#A3DAFF');
+  bg.addColorStop(.72, '#B2DFFF'); bg.addColorStop(1, '#D9ECFF');
+  ctx.fillStyle = bg; ctx.fillRect(-CW, -CW * 4, CW * 2, CW * 8);
+  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
+
+  const tIntro = since(now), dustK = clamp01(tIntro / 1200);
+  for (const d of DUST) { const p = project(d.x, d.y, d.z); if (!p) continue;
+    ctx.fillStyle = `rgba(255,255,255,${d.a * 1.4 * dustK * Math.min(1, p.s * 1.2)})`; ctx.fillRect(p.x, p.y, 1, 1); }
+
+  drawAxes(now);
+
+  // 점은 X축(자기 시각) 위에서 떠올라 제자리로 — 도착 전엔 투명
+  NODES.forEach(n => {
+    const k = outCubic(clamp01((tIntro - n.appear) / PT_DUR));
+    n.inK = k;
+    if (k <= 0) { n.p = null; return; }
+    const sx = n.x, sy = BOX.y0, sz = BOX.zBack;               /* X축 위 자기 시각에서 출발 */
+    n.p = project(sx + (n.x - sx) * k, sy + (n.y - sy) * k, sz + (n.z - sz) * k);
+  });
+  const edgeK = clamp01((tIntro - EDGE_AT) / EDGE_DUR);
+
+  /* 돌다가 카메라 앞으로 온 관계선은 올리지 않아도 하나씩 떠오른다 — 점 이름과 같은 방식 */
+  const quiet = dim < .2 && viewDim < .2;
+  const onScr = p => p.x > 60 && p.x < CW - 60 && p.y > 40 && p.y < CH - 60;
+  const NEARZ = cam.dist * .78;                     /* 이 앞까지 들어와야 집는다 */
+  const ambSet = new Set(quiet ? EDGES
+    .filter(e => e.s.p && e.d.p && e.s.inK > .9 && e.d.inK > .9
+      && e.s.p.zc < NEARZ && e.d.p.zc < NEARZ
+      && e.type !== 'SAID_BY'
+      && onScr(e.s.p) && onScr(e.d.p)
+      && (d => d > 34 && d < Math.min(CW, CH) * .72)(Math.hypot(e.d.p.x - e.s.p.x, e.d.p.y - e.s.p.y)))
+    .sort((x, y) => (y.s.p.zc + y.d.p.zc) - (x.s.p.zc + x.d.p.zc)).slice(-3) : []);
+  EDGES.forEach(e => { e.amb = ease(e.amb || 0, ambSet.has(e) ? 1 : 0, kLbl); });
+
+  // 선
+  for (const e of EDGES) {
+    const a = e.s.p, b = e.d.p; if (!a || !b) continue;
+    const ctxEdge = e.axis === 'participant';
+    const L = Math.max(e.lit, e.amb || 0);
+    if (e.type === 'SAID_BY' && !e.litTo && L < .02) continue;
+    const al = Math.min(1, L * .95 * edgeK);     /* 미리 깔아 두지 않는다 — 답을 따라갈 때, 또는 가까이 왔을 때만 */
+    if (al < .02) continue;
+    ctx.setLineDash(e.explicitness === 'inferred' ? [1.4, 2.4] : []);
+    ctx.strokeStyle = `rgba(255,255,255,${al * .85})`;   /* 흰 선 — 옅은 아래쪽에서도 떠 보이게 옅은 빛을 깐다 */
+    ctx.shadowColor = `rgba(38,88,176,${al * .28})`; ctx.shadowBlur = 3;
+    ctx.lineWidth = (KEY.has(e.type) ? .7 : .5) + L * .28;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    /* 실선 위로 빛 한 조각이 점에서 점으로 흘러간다 */
+    if (e.explicitness !== 'inferred' && L > .3) {
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (len > 24) {
+        e.phase ??= Math.random();
+        const span = len + 90, off = ((now * .034 + e.phase * span) % span) - 45;
+        ctx.save();
+        ctx.setLineDash([9, span]); ctx.lineDashOffset = -off;
+        ctx.strokeStyle = `rgba(255,255,255,${al * .72})`;
+        ctx.lineWidth = ctx.lineWidth + .35;
+        ctx.shadowColor = 'rgba(255,255,255,.5)'; ctx.shadowBlur = 4;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.restore();
+      }
+    }
+    if (L > .1) {
+      const angle=Math.atan2(b.y-a.y,b.x-a.x), len=Math.hypot(b.x-a.x,b.y-a.y);
+      if(len>22){const x=b.x-Math.cos(angle)*7,y=b.y-Math.sin(angle)*7;
+        ctx.setLineDash([]);ctx.lineWidth=.55;ctx.beginPath();ctx.moveTo(x-Math.cos(angle-.42)*4.5,y-Math.sin(angle-.42)*4.5);
+        ctx.lineTo(x,y);ctx.lineTo(x-Math.cos(angle+.42)*4.5,y-Math.sin(angle+.42)*4.5);ctx.stroke();}
+    }
+    if (e.amb > .02) {                               /* 떠오른 선 — 네모 빛이 흘러가고, 가운데에 관계 이름칩 */
+      const mx = Math.round((a.x + b.x) / 2), my = Math.round((a.y + b.y) / 2);
+      ctx.save(); ctx.setLineDash([]); ctx.shadowBlur = 0;
+      for (let i = 0; i < 3; i++) {
+        const t = (now * .00009 + i / 3 + (e.phase || 0)) % 1;
+        ctx.globalAlpha = e.amb * .55 * Math.sin(Math.PI * t);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(Math.round(a.x + (b.x - a.x) * t), Math.round(a.y + (b.y - a.y) * t), 2, 2);
+      }
+      const tx = AXIS_EN[e.axis] || e.axis;
+      ctx.font = '600 10px ' + SANS; ctx.letterSpacing = '-0.02em'; ctx.textBaseline = 'middle';
+      const w = Math.ceil(ctx.measureText(tx).width);
+      ctx.globalAlpha = e.amb * .95; ctx.fillStyle = '#ffffff';
+      ctx.fillText(tx, mx - w / 2, my - 8);
+      ctx.restore();
+    }
+  }
+  ctx.setLineDash([]); ctx.shadowBlur = 0;
+
+  // 빛이 흐르는 입자
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const q = particles[i], k = (now - q.t0) / q.dur;
+    if (k >= 1.25) { particles.splice(i, 1); continue; }
+    const a = q.e.s.p, b = q.e.d.p; if (!a || !b || k < 0) continue;
+    for (let j = 0; j < 4; j++) {
+      const t = Math.max(0, Math.min(1, k - j * .05));
+      const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+      ctx.drawImage(sprite('#ffffff'), x - 6 + j, y - 6 + j, 12 - j * 2, 12 - j * 2);
+    }
+  }
+
+  // 점 — 먼 것부터
+  const order = NODES.filter(n => n.p).sort((a, b) => b.p.zc - a.p.zc);
+  /* 카메라 쪽으로 다가온 점은 올리지 않아도 이름이 뜬다 — 돌면서 하나씩 스쳐 지나간다 */
+  const near5 = new Set(order.filter(n => n.inK > .9 && !CTX.has(n.type) && n.p.zc < cam.dist * .78
+    && n.p.x > 96 && n.p.x < CW - 96 && n.p.y > 72 && n.p.y < CH - 104).slice(-6));   /* 화면 밖으로 투영된 점은 뺀다 */
+  NODES.forEach(n => { n.lbl = ease(n.lbl || 0, quiet && near5.has(n) ? 1 : 0, kLbl); });
+  const placed = [];
+  const lgP = project(HC.x, HC.y, HC.z);
+  const lgA = lgP ? Math.min(1, fog(lgP)) * (1 - dim * .75) * clamp01((tIntro - 700) / 1100) : 0;
+  let lgLeft = !!lgP;
+  for (const n of order) {
+    if (lgLeft && n.p.zc < lgP.zc) { drawLogo(lgP, lgA); lgLeft = false; }
+    const p = n.p, ctxNode = CTX.has(n.type);
+    let al = (ctxNode ? .7 : 1) * (1 - dim * .9) * (1 - viewDim * (n.inView ? 0 : .72));
+    al = Math.min(1, al * fog(p) * (n.glow > .3 ? 1 : (NODE_A[n.type] || 1)) + n.glow) * n.inK;
+    const r = n.r * p.s * 1.55 * (1 + n.glow * .4);
+    const col = COLOR[n.type];
+    ctx.globalAlpha = al * .85;
+    if (!NODE_A[n.type]) ctx.drawImage(sprite(col), p.x - r * 2.2, p.y - r * 2.2, r * 4.4, r * 4.4);
+    ctx.globalAlpha = al;
+    if (n.type === 'Open') { ctx.strokeStyle = col; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(.5, r * 1.1), 0, 7); ctx.stroke(); }
+    else if (n.type === 'Participant' || n.type === 'Team') {
+      const rr = Math.max(2.6, r * .92); ctx.strokeStyle = col; ctx.lineWidth = .9; ctx.beginPath();
+      if(n.type === 'Team') ctx.rect(p.x-rr,p.y-rr,rr*2,rr*2);
+      else {ctx.moveTo(p.x,p.y-rr);ctx.lineTo(p.x+rr,p.y);ctx.lineTo(p.x,p.y+rr);ctx.lineTo(p.x-rr,p.y);ctx.closePath();}
+      ctx.stroke();
+    }
+    else { ctx.fillStyle = n.glow > .3 ? '#ffffff' : col; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(.85, r * .62), 0, 7); ctx.fill(); }
+    /* 답이 켜질 때는 띄우지 않는다 — 올렸을 때(칩)와 가까이 왔을 때(옅은 글자) */
+    const lbl = hover === n ? 1 : (n.lbl > .02 && !placed.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 86) ? n.lbl : 0);
+    if (lbl > .02) { placed.push(p); track(n, p, r, lbl, hover === n, al, now); }
+    if (n.glow > .5 && (n.type === 'Decision' || n.type === 'Conditional' || n.type === 'Action' || n.type === 'Open')) {
+      ctx.globalAlpha = (n.glow - .5) * .8; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = .7;
+      ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(.5, r * 2.2 + Math.sin(now * .004) * 1.5), 0, 7); ctx.stroke();
+    }
+  }
+  if (lgLeft) drawLogo(lgP, lgA);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  hud();
+
+}
+
+/* ================= 3. 조작 ================= */
+let drag = null;
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('pointerdown', e => {
+  drag = { x: e.clientX, y: e.clientY, yaw: cam.yaw, pitch: cam.pitch, moved: false,
+    pan: e.button === 1 || e.button === 2 || e.shiftKey,      /* 오른쪽·가운데 끌기 또는 shift — 시점을 옮긴다 */
+    tx: cam.tx, ty: cam.ty, tz: cam.tz };
+  cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); camTo = null; orbitOff(); lastInput = performance.now(); });
+cv.addEventListener('pointermove', e => {
+  if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+    lastInput = performance.now();
+    if (drag.pan) {                                   /* 화면에서 끈 만큼 시점이 따라온다 */
+      const k = cam.dist / (Math.min(CW, CH) * FOCAL), cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+      cam.tx = drag.tx - dx * k * cy; cam.tz = drag.tz + dx * k * sy; cam.ty = drag.ty + dy * k;
+      return;
+    }
+    cam.yaw = drag.yaw + dx * .005; cam.pitch = Math.max(-1.2, Math.min(1.2, drag.pitch + dy * .004));
+    home.yaw = cam.yaw; return; }
+  const r = cv.getBoundingClientRect(); hover = pick(e.clientX - r.left, e.clientY - r.top);
+  cv.style.cursor = hover ? 'pointer' : '';
+});
+cv.addEventListener('pointerup', e => {
+  cv.classList.remove('drag');
+  if (drag && !drag.moved) { const r = cv.getBoundingClientRect(); const n = pick(e.clientX - r.left, e.clientY - r.top);
+    n ? focusNode(n) : clearFocus(); }
+  drag = null;
+});
+cv.addEventListener('wheel', e => { e.preventDefault(); camTo = null; orbitOff(); lastInput = performance.now();
+  cam.dist = Math.max(220, Math.min(3600, cam.dist * Math.exp(e.deltaY * .0012))); }, { passive: false });
+/* 두 번 누르면 — 흩어진 점이 모두 화면에 들어오는 자리로 돌아온다 */
+function fitAll() {
+  const ns = NODES.filter(n => n.x != null); if (!ns.length) return;
+  const avg = k => ns.reduce((a, n) => a + n[k], 0) / ns.length;
+  const c = { x: avg('x'), y: avg('y'), z: avg('z') };
+  const R = Math.max(...ns.map(n => Math.hypot(n.x - c.x, n.y - c.y, n.z - c.z)));
+  const need = R * FOCAL / .40;                       /* 반지름이 화면 반쪽 안에 들어오는 거리 */
+  camTo = { tx: c.x, ty: c.y, tz: c.z, dist: Math.max(420, Math.min(3600, need)), yaw: 0.52, pitch: -0.2 };
+}
+cv.addEventListener('dblclick', () => { cancelQuery(); clearFocus(); home.yaw = 0.52; fitAll(); });
+function pick(x, y) {
+  let best = null, bd = 1e9;
+  NODES.forEach(n => { if (!n.p) return; const d = Math.hypot(n.p.x - x, n.p.y - y), rr = Math.max(10, n.r * n.p.s * 3.4);
+    if (d < rr && d < bd) { best = n; bd = d; } });
+  return best;
+}
+function lookAt(ns, tight) {
+  const pts = ns.filter(n => n.x != null); if (!pts.length) return;
+  const avg = k => pts.reduce((a, n) => a + n[k], 0) / pts.length;
+  const span = Math.max(tight ? 150 : 260, ...pts.map(n => Math.hypot(n.x - avg('x'), n.y - avg('y'), n.z - avg('z'))));
+  const d = tight ? Math.max(360, Math.min(880, span * .74)) : Math.max(380, Math.min(1050, span * .85));
+  camTo = { tx: avg('x'), ty: avg('y'), tz: avg('z'), dist: d, yaw: cam.yaw, pitch: cam.pitch };
+}
+/* 답을 다 찾은 뒤 — 그 덩어리를 바짝 당겨 보여 주고 아주 느리게 돌려 입체를 읽게 한다 */
+let ORBIT = null;
+function orbitOn() { if (camTo) ORBIT = { t0: performance.now(), yaw0: camTo.yaw, pitch0: camTo.pitch }; }
+function orbitOff() { ORBIT = null; }
+function resetLights() {
+  NODES.forEach(n => { n.glowTo = 0; }); EDGES.forEach(e => { e.litTo = 0; });
+  particles.length = 0;
+}
+
+/* ================= 4. 선택한 노드 — 근거로 돌아간다 ================= */
+/* 점을 누르면 그 점 하나만 밝힌다. 연결선은 질문에 답할 때만 켠다 —
+   이 그래프의 연결은 답을 찾기 위해 미리 매어 둔 것이지, 눌러서 구경하는 것이 아니다. */
+function focusNode(n) {
+  cancelQuery();
+  resetLights(); dimTo = 1;
+  n.glowTo = 1;
+  showDetail(n);
+}
+function clearFocus() {
+  resetLights(); dimTo = 0; $('#box').hidden = true;
+  document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel'));
+}
+function quoteBlock(o, who) {
+  if (!o.quote) return '';
+  const line = o.line || o.quote, i = line.indexOf(o.quote);
+  const body = i < 0 ? esc(line) : esc(line.slice(0, i)) + `<mark>${esc(o.quote)}</mark>` + esc(line.slice(i + o.quote.length));
+  return `<div class="q"><div class="qm"><b>${esc(who || o.speaker)}</b><span>${esc(o.t)}</span></div><p>${body}</p></div>`;
+}
+function edgeRow(e, from) {
+  const other = e.s === from ? e.d : e.s, dir = e.s === from ? '→' : '←';
+  return `<div data-go="${esc(other.id)}">${dir} <code class="${e.explicitness === 'inferred' ? 'inf' : ''}">${VERB[e.type] || e.type}</code> ${esc(other.label)} <small>${e.type}</small>
+    <span class="badge ${e.explicitness === 'inferred' ? 'inf' : 'exp'}">${e.explicitness} ${e.confidence.toFixed(2)}</span></div>`;
+}
+function showDetail(n) {
+  const box = $('#box'); box.hidden = false;
+  const topic = TOPIC[n.topic];
+  box.innerHTML = `<div class="bq"><b><span class="badge">${n.type}</span> ${esc(n.label)}</b><button class="x" data-close>✕</button></div>
+    <div class="ans"><div>${esc(n.text)}</div></div>
+    <div class="stepl">${[topic && topic.id !== 'ctx' ? topic.title : '', n.speaker, n.t, n.quote ? 'confidence ' + n.confidence.toFixed(2) : ''].filter(Boolean).map(esc).join(' · ')}</div>
+    ${n.type === 'Participant' ? `<div class="person-meta">소속 파트 · ${esc(n.team || n.parts.join(' · '))}<br>직책 · ${esc(n.role || '미확인')}<br><small>발언자와 업무 담당자는 서로 다른 관계입니다.</small></div>` : ''}
+    ${n.quote ? `<div class="hd">source utterance</div><div class="src">${quoteBlock(n)}</div>` : ''}`;
+  box.scrollIntoView({ block: 'nearest' });
+}
+$('#box').addEventListener('click', e => {
+  if (e.target.closest('[data-close]')) { cancelQuery(); clearFocus(); return; }
+  const go = e.target.closest('[data-go]'); if (go) focusNode(BY[go.dataset.go]);
+});
+
+/* ================= 5. 질문 → 관계를 따라 답을 찾는다 (가이드 15–17절) =================
+   답을 미리 가진 것이 아니라, 질문에 걸린 노드에서 출발해 Edge 를 따라 결론·업무·미결까지 간다.
+   이 테스트 판은 규칙 기반 탐색이다. 모든 경로와 답의 문장은 그래프와 원 발화에서만 나온다. */
+const DISC = new Set(['discussion', 'outcome']);
+const SYN = [['프로젝터', '프로젝션', '사출', '투사'], ['무릎', '발목', '허리', '부위', '타깃'], ['부스트', 'boost', '강화'],
+  ['로고', '심볼', '폰트'], ['컬러', '색', '레드'], ['전시', '책자', '태블릿', '아카이빙'], ['일정', '스케줄', '발표', '마감'],
+  ['신발', '깔창', '결착', '아이젠'], ['센서', '센싱', '감지'], ['제어', '조작', '이어폰', '발'], ['가치', '메인', '핵심', '본질'],
+  ['시나리오', '장면', '종목', '농구', '러닝', '복싱'], ['단체', '팀플레이', '같이'], ['자문', '대표'], ['근거', '출처', '실험']];
+const STOP = new Set('왜 뭐야 뭐 뭔가 어떻게 어떤 무엇 누가 누구 이거 그거 저거 정했어 정했나 됐어 했어 하기로 거야 건가 있어 없어 알려줘 보여줘 대해 관련 내용 결정 결론 이유 회의 우리'.split(' '));
+function tokens(q) {
+  return (q.toLowerCase().match(/[가-힣a-z0-9]+/g) || [])
+    .map(w => w.replace(/(으로|에서|에게|한테|까지|부터|는|은|이|가|을|를|의|에|로|와|과|도|만)$/, ''))
+    .map(w => w.length > 2 ? w.replace(/(하기로|했어요|했어|해요|할까|하나|됐어|돼요|해|돼)$/, '') : w)   /* 유지해 → 유지 */
+    .filter(w => w.length >= 2 && !STOP.has(w))
+    .flatMap(w => { const g = SYN.find(s => s.some(x => w.includes(x) || x.includes(w))); return g ? [w, ...g.filter(x => x !== w)].map((x, i) => [x, i ? .35 : 1]) : [[w, 1]]; });   /* 비슷한 말은 약하게만 */
+}
+function score(n, toks) {
+  if (CTX.has(n.type)) return 0;
+  const hay = (n.label + ' ' + n.text + ' ' + (n.quote || '') + ' ' + (TOPIC[n.topic]?.title || '')).toLowerCase();
+  let s = 0;
+  toks.forEach(([w, wt]) => { if (hay.includes(w)) s += wt * (w.length >= 3 ? 2 : 1.3) * (n.label.toLowerCase().includes(w) ? 1.6 : 1); });
+  return s;
+}
+function bfs(from, maxD = 5) {                        /* 논의·결과 관계로만, 방향은 가리지 않는다 */
+  const dist = new Map([[from, 0]]), prev = new Map(), qu = [from];
+  while (qu.length) { const n = qu.shift(), d = dist.get(n); if (d >= maxD) continue;
+    for (const e of [...n.out, ...n.in]) { if (!DISC.has(e.axis)) continue; const m = e.s === n ? e.d : e.s;
+      if (CTX.has(m.type) || dist.has(m)) continue; dist.set(m, d + 1); prev.set(m, e); qu.push(m); } }
+  return { dist, prev };
+}
+/* 질문의 뼈대(누구 · 어느 파트 · 무엇을 묻나)는 먼저 떼어 낸다.
+   "아직 해결되지 않은" 의 '아직' 이 미결 문장의 '아직' 과 맞아 목록이 줄어드는 일을 막는다. */
+const RE = {
+  todo: /할\s*일|해야\s*(할|하는|될)?|업무|액션|맡은|맡아|담당|숙제|todo/gi,
+  open: /미결|해결\s*(되지|안\s*된|안된|못한|안)\s*(않은|건|것)?|안\s*된|아직|남은|못\s*정한?|정하지\s*못한?|열린|이월/g,
+  UX: /\bux\b|유엑스/gi, ID: /\bid\b|아이디|제품\s*파트/gi, BX: /\bbx\b|\bvd\b|비엑스|브랜드\s*파트/gi, part: /파트|팀/g,
+};
+function interpret(q) {
+  const names = G.participants.map(p => p.name);
+  const who = names.find(nm => q.includes(nm)) || null;
+  const team = ['UX', 'ID', 'BX'].find(t => RE[t].test(q)) || null;
+  Object.values(RE).forEach(r => { r.lastIndex = 0; });
+  const intent = RE.todo.test(q) ? 'todo' : RE.open.test(q) ? 'open' : 'why';
+  Object.values(RE).forEach(r => { r.lastIndex = 0; });
+  let rest = q.replace(new RegExp(names.join('|'), 'g'), ' ');
+  Object.values(RE).forEach(r => { rest = rest.replace(r, ' '); });
+  return { who, team, intent, toks: tokens(rest) };
+}
+const relTo = (n, types, tgt) => n.out.some(e => types.includes(e.type) && tgt(e.d));
+function forWhom(n, who, team) {
+  if (!who && !team) return true;
+  const hit = m => (who && (m.id === 'p.' + who || m.id === 'team.' + TEAM_OF[who])) || (team && m.id === 'team.' + team);
+  return relTo(n, ['ASSIGNED_TO', 'RESPONSIBLE_FOR', 'AFFECTS'], hit) || (who && n.speaker === who && n.type !== 'Action') || (team && !who && n.parts.includes(team));
+}
+function explore(q) {
+  const I = interpret(q), P = new Set(), final = new Set();
+  const add = n => P.add(n);
+  if (I.intent === 'todo') {
+    const tgt = [I.who && 'p.' + I.who, (I.team || (I.who && TEAM_OF[I.who])) && 'team.' + (I.team || TEAM_OF[I.who])].filter(Boolean);
+    let acts = NODES.filter(n => n.type === 'Action' && (!tgt.length || n.out.some(e => e.type === 'ASSIGNED_TO' && tgt.includes(e.d.id))));
+    const sc = acts.map(n => [n, score(n, I.toks)]), top = Math.max(0, ...sc.map(x => x[1]));
+    if (top > 0 && I.toks.length) acts = sc.filter(x => x[1] > 0).map(x => x[0]);
+    const mine = m => !I.who && !I.team ? true
+      : m.id === 'p.' + I.who || m.id === 'team.' + (I.team || TEAM_OF[I.who]);
+    acts.forEach(a => { final.add(a); add(a);
+      a.in.filter(e => ['CREATES', 'LEADS_TO'].includes(e.type)).forEach(e => add(e.s));
+      a.out.filter(e => e.type === 'ASSIGNED_TO' && mine(e.d)).forEach(e => add(e.d)); });
+  } else if (I.intent === 'open') {
+    let opens = NODES.filter(n => (n.type === 'Open' || (n.type === 'Conditional' && n.out.some(e => e.type === 'REQUIRES'))) && !resolved(n) && forWhom(n, I.who, I.team));
+    const sc = opens.map(n => [n, score(n, I.toks)]), top = Math.max(0, ...sc.map(x => x[1]));
+    if (top > 0) opens = sc.filter(x => x[1] > 0).map(x => x[0]);
+    opens.forEach(o => { final.add(o); add(o);
+      o.in.filter(e => ['CHALLENGES', 'SUPPORTS'].includes(e.type)).slice(0, 2).forEach(e => add(e.s));
+      o.out.filter(e => ['DERIVED_FROM', 'REQUIRES', 'REMAINS_UNRESOLVED', 'RESPONSIBLE_FOR'].includes(e.type)).forEach(e => add(e.d)); });
+  } else {
+    const sc = NODES.map(n => [n, score(n, I.toks)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+    if (!sc.length) return { I, fail: true };
+    const seeds = sc.filter(x => x[1] >= sc[0][1] * .5).slice(0, 5).map(x => x[0]);
+    // 씨앗들에서 가장 가까운 결정으로
+    const maps = seeds.map(s => bfs(s));
+    let target = null, best = 1e9;
+    const wts = seeds.map(n => score(n, I.toks) ** 2), W = wts.reduce((a, b) => a + b, 0);
+    NODES.filter(n => n.type === 'Decision' || n.type === 'Conditional' || (n.type === 'Open' && !resolved(n))).forEach(d => {
+      let sum = 0, cover = 0; maps.forEach((m, i) => { if (m.dist.has(d)) { sum += m.dist.get(d) * wts[i]; cover += wts[i]; } });
+      if (!cover) return;
+      const cost = sum / cover - 1.5 * cover / W - score(d, I.toks) * .6 + (d.type === 'Open' ? .4 : 0);
+      if (cost < best) { best = cost; target = d; }
+    });
+    if (!target) return { I, fail: true };
+    final.add(target); add(target);
+    maps.forEach((m, i) => { if (!m.dist.has(target) || m.dist.get(target) > 4) return;
+      let cur = target; add(seeds[i]); while (m.prev.has(cur)) { const e = m.prev.get(cur); add(cur); cur = e.s === cur ? e.d : e.s; add(cur); } });
+    // 그 결론으로 이어진 주장에 붙은 근거·반대·수정까지 한 걸음 더
+    [...P].filter(n => ['Proposal', 'Claim', 'Decision', 'Conditional'].includes(n.type)).forEach(n =>
+      n.in.filter(e => ['SUPPORTS', 'CHALLENGES', 'OPPOSES', 'REVISES', 'REPLACES', 'ADOPTED_AS'].includes(e.type))
+        .slice(0, 3).forEach(e => add(e.s)));
+    // 결정이 만든 업무 · 남긴 미결
+    target.out.filter(e => e.type === 'CREATES').forEach(e => add(e.d));
+    target.in.filter(e => e.type === 'DERIVED_FROM' && e.s.type === 'Open').forEach(e => add(e.s));
+  }
+  if (!P.size) return { I, fail: true };
+  const nodes = [...P].slice(0, 22);
+  const inP = new Set(nodes);
+  const edges = EDGES.filter(e => inP.has(e.s) && inP.has(e.d) && (e.axis !== 'participant' || ['ASSIGNED_TO', 'RESPONSIBLE_FOR', 'SAID_BY', 'MEMBER_OF'].includes(e.type)));
+  const lv = n => LEVEL[n.type];
+  edges.sort((a, b) => (Math.min(lv(a.s), lv(a.d)) - Math.min(lv(b.s), lv(b.d))) || ((a.s.sec ?? 1e6) - (b.s.sec ?? 1e6)));
+  const seeds = nodes.filter(n => lv(n) <= 1 && !CTX.has(n.type)).sort((a, b) => a.sec - b.sec);
+  return { I, nodes, edges, seeds: seeds.length ? seeds : nodes.slice(0, 3), final: [...final] };
+}
+
+/* 답의 문장 — 경로에 있는 노드·관계만으로 만든다. 지어낸 내용은 없다.
+   노드 text 는 build.py 가 끝 형태를 검사해 둔다(결정·업무 '~ㄴ다', 근거 '~다', 미결 '~지/~못했다').
+   그 덕에 여기서 '~하기로 했어요', '~다는 점' 으로 안전하게 바꿀 수 있다. */
+const JONG = w => { const t = String(w).replace(/[\s”"’')\]]+$/, ''); const c = t.slice(-1).charCodeAt(0) - 0xAC00; return c >= 0 && c < 11172 ? c % 28 : -1; };
+const josa = (w, a, b) => w + (JONG(w) > 0 && !(a === '으로' && JONG(w) === 8) ? a : b);   /* 받침 있으면 a · ㄹ받침은 '로' */
+const stem = t => { t = t.trim(); if (t.endsWith('는다')) return t.slice(0, -2);
+  const c = t.charCodeAt(t.length - 2) - 0xAC00; return t.slice(0, -2) + String.fromCharCode(0xAC00 + c - 4); };
+const willDo = n => stem(n.text) + '기로 했어요';
+const SRC_OF = { 인터뷰: ['인터뷰에서', '응답'], 실험: ['실험에서', '결과'], 조사: ['조사에서', '결과'], 책자: ['책자에서', '내용'],
+  논문: ['논문에서', '내용'], 체험: ['체험에서', '감각'] };
+function point(n) {                                    /* "~다" → "~다는 점" · "인터뷰: ~다" → "인터뷰에서 ~다는 응답" */
+  let t = n.text.trim(), pre = '', noun = '점';
+  const m = t.match(/^(인터뷰|실험|조사|책자|논문|체험):\s*/);
+  if (m) { [pre, noun] = SRC_OF[m[1]]; pre += ' '; t = t.slice(m[0].length); }
+  t = t.endsWith('이다') ? t.slice(0, -2) + '이라는' : t + '는';
+  return `${pre}${t} ${noun}`;
+}
+function listOf(items, ja, jb) {                       /* "A, B와 C" + 마지막 조사 */
+  if (!items.length) return '';
+  const last = items[items.length - 1], head = items.slice(0, -1);
+  const body = head.length ? `${head.slice(0, -1).map(x => x + ', ').join('')}${josa(head[head.length - 1], '과', '와')} ${last}` : last;
+  return josa(body, ja, jb);
+}
+const resolved = n => n.in.some(e => e.type === 'RESOLVES');
+const openSay = n => n.text.trim().endsWith('지') ? `${n.text.trim()}는 아직 정하지 못했어요` : n.text.trim().replace(/다$/, '어요');
+const whoSay = m => m.type === 'Participant' ? `${m.label} 님` : `${m.label} 파트`;
+function carry(n) {
+  const nx = n.out.filter(e => e.type === 'REMAINS_UNRESOLVED').map(e => `“${e.d.label}”`);
+  const own = n.out.filter(e => e.type === 'RESPONSIBLE_FOR').map(e => whoSay(e.d));
+  const o = own.length ? `${listOf(own, '이', '가')} 맡아 보기로 했` : '', x = nx.length ? `${josa(nx[0], '으로', '로')} 넘어갔어요.` : '';
+  return o && x ? ` ${o}고, ${x}` : o ? ` ${o}어요.` : x ? ` ${x}` : '';
+}
+
+function compose(R) {
+  const lead = [], groups = [], inP = new Set(R.nodes);
+  if (R.I.intent === 'todo') {
+    const acts = R.final.slice().sort((a, b) => a.sec - b.sec);
+    const subj = R.I.who ? `${R.I.who} 님이 맡은 일은` : R.I.team ? `${R.I.team} 파트가 맡은 일은` : '이번 회의에서 정해진 업무는';
+    lead.push(acts.length ? `${subj} 모두 ${acts.length}가지예요.` : `${subj} 찾지 못했어요.`);
+    const bucket = new Map();                           /* 사람 몫을 먼저, 파트 몫을 다음에 */
+    acts.forEach(a => {
+      const to = a.out.filter(e => e.type === 'ASSIGNED_TO' && inP.has(e.d)).map(e => e.d)
+        .sort((x, y) => (x.type === 'Team') - (y.type === 'Team'))[0];
+      const key = to ? whoSay(to) + (to.type === 'Team' ? ' 몫' : '') : '담당 미정';
+      if (!bucket.has(key)) bucket.set(key, []);
+      bucket.get(key).push(a);
+    });
+    [...bucket.entries()].sort((a, b) => a[0].includes('파트') - b[0].includes('파트'))
+      .forEach(([k, as]) => as.forEach(a => groups.push([(R.I.team && !R.I.who ? '' : `${k} · `) + (TOPIC[a.topic]?.title || ''), `${willDo(a)}.`])));
+    if (R.I.who && bucket.size > 1) lead.push(`직접 맡은 일과, ${TEAM_OF[R.I.who]} 파트 전체가 함께 맡은 일로 나눠 정리했어요.`);
+  } else if (R.I.intent === 'open') {
+    const os = R.final.slice().sort((a, b) => a.sec - b.sec);
+    const scope = R.I.who ? `${R.I.who} 님과 관련해 ` : R.I.team ? `${R.I.team} 파트에서 ` : '';
+    const opens = os.filter(n => n.type === 'Open'), conds = os.filter(n => n.type === 'Conditional');
+    lead.push(`${scope}아직 매듭짓지 못한 건 ${opens.length}가지이고, 조건을 달고 넘어간 결정이 ${conds.length}가지 있어요.`);
+    opens.forEach(n => groups.push([`미결 · ${TOPIC[n.topic]?.title || ''}`, `${openSay(n)}.${carry(n)}`.replace(/\.,/g, ',')]));
+    conds.forEach(n => {
+      const req = n.out.filter(e => e.type === 'REQUIRES').map(e => e.d)[0];
+      const tail = !req ? '' : req.type === 'Open' ? ` 다만 ${openSay(req)}.`
+        : ` 다만 ${josa(point(req), '이', '가')} ${req.type === 'Condition' ? '전제로 붙어 있어요' : '과제로 남아 있어요'}.`;
+      groups.push([`조건부 · ${TOPIC[n.topic]?.title || ''}`, `${stem(n.text)}기로 했어요.${tail}`]);
+    });
+  } else {
+    const d = R.final[0], used = new Set();
+    if (d.type === 'Open') {
+      used.add(d);
+      lead.push(`아직 결론이 나지 않았어요. ${openSay(d)}.${carry(d)}`);
+      const props = R.nodes.filter(n => n.type === 'Proposal').sort((a, b) => a.sec - b.sec);
+      if (props.length) lead.push(`논의된 안으로는 ${listOf(props.map(n => `“${n.label}”`), '이', '가')} 나왔어요.`);
+      R.nodes.filter(n => n.type === 'Concern').forEach(k => { used.add(k);
+        const on = R.edges.find(e => e.s === k && ['CHALLENGES'].includes(e.type));
+        lead.push(`${on ? `“${on.d.label}”에는 ` : ''}${josa(point(k), '이', '가')} 걸림돌로 꼽혔어요.`); });
+      R.nodes.filter(n => n.type === 'Condition').forEach(c => { used.add(c); lead.push(`${josa(point(c), '도', '도')} 함께 이야기됐어요.`); });
+    } else
+    lead.push(`결론부터 말하면, ${willDo(d)}.`);
+    d.out.filter(e => e.type === 'REQUIRES').forEach(e => { used.add(e.d);
+      lead.push(e.d.type === 'Open' ? `다만 ${openSay(e.d)}.` : `다만 ${josa(point(e.d), '이', '가')} ${e.d.type === 'Condition' ? '전제로 붙어 있어요' : '과제로 남아 있어요'}.`); });
+    // 무엇이 무엇을 바꿨나
+    R.edges.filter(e => e.type === 'REVISES' || e.type === 'REPLACES').sort((a, b) => (a.sec ?? 0) - (b.sec ?? 0)).slice(0, 2).forEach(e => {
+      const old = e.d, nu = e.s;
+      const ch = R.edges.filter(x => ['CHALLENGES', 'OPPOSES'].includes(x.type) && x.d === old).map(x => x.s);
+      ch.forEach(c => used.add(c));
+      const why = ch.length ? `${listOf(ch.slice(0, 2).map(point), '이', '가')} 지적되면서 ` : '';
+      lead.push(`처음에는 “${old.label}” 쪽으로 이야기가 나왔는데, ${why}“${nu.label}” 쪽으로 바뀌었어요.`);
+      used.add(old); used.add(nu);
+    });
+    // 반론이 있었지만 다른 근거로 정리된 것
+    R.nodes.filter(n => n.type === 'Concern' && !used.has(n)).forEach(k => {
+      const by = R.edges.filter(x => x.type === 'OPPOSES' && x.d === k).map(x => x.s);
+      if (!by.length) return;
+      by.forEach(b => used.add(b)); used.add(k);
+      lead.push(`${josa(point(k), '이', '가')} 반론으로 나왔지만, ${josa(listOf(by.slice(0, 2).map(point), '', ''), '으로', '로')} 정리됐어요.`);
+    });
+    // 뒷받침한 근거 — 명시된 관계 · 확신도 높은 순으로 셋까지
+    const sup = R.nodes.filter(n => (n.type === 'Evidence' || n.type === 'Claim') && !used.has(n))
+      .map(n => [n, Math.max(0, ...n.out.filter(e => inP.has(e.d)).map(e => (e.explicitness === 'explicit' ? 1 : .6) * e.confidence))])
+      .sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => x[0]).sort((a, b) => a.sec - b.sec);
+    if (sup.length) lead.push(d.type === 'Open' ? `함께 나온 이야기로는 ${listOf(sup.map(point), '이', '가')} 있어요.`
+      : `이렇게 정한 근거로는 ${listOf(sup.map(point), '이', '가')} 꼽혔어요.`);
+    // 그래서 생긴 일 · 남은 일
+    R.nodes.filter(n => n.type === 'Action').forEach(a => {
+      const to = a.out.filter(e => e.type === 'ASSIGNED_TO').map(e => e.d).sort((x, y) => (x.type === 'Team') - (y.type === 'Team'))[0];
+      lead.push(`${d.type === 'Open' ? '관련 업무로는' : '이 결정에 따라'} ${to ? (to.type === 'Team' ? `${to.label} 파트에서` : `${to.label} 님이`) + ' ' : ''}${willDo(a)}.`);
+    });
+    R.nodes.filter(n => n.type === 'Open' && !used.has(n) && !resolved(n) && n !== d).forEach(o => lead.push(`다만 ${openSay(o)}.`));
+  }
+  return { lead, groups };
+}
+
+const STEP_NAMES = ['질문 해석', '후보 노드 점등', '관계 탐색', '원 발화 확인', '답변'];
+/* 탐색 순서는 타이머로 돈다. 그리기(rAF)와 떼어 두어야 탭이 가려져 있어도 답이 끝까지 나온다. */
+const Q = { active: false, timers: [] };
+function cancelQuery() { Q.active = false; Q.timers.forEach(clearTimeout); Q.timers = []; orbitOff(); }
+function setStep(i) {
+  const box = $('#box'); box.querySelectorAll('.steps span').forEach((s, k) => {
+    s.classList.toggle('on', k <= i); s.classList.toggle('now', k === i);
+  });
+  const l = box.querySelector('.stepl'); if (l) l.textContent = `${i + 1}/5 · ${STEP_NAMES[i]}`;
+}
+/* 질문 → Claude(이 맥의 구독)가 의도를 읽고 그래프에서 경로를 고른다. 서버가 없으면 규칙 기반 탐색으로 대신한다. */
+const API = location.protocol.startsWith('http') ? '/ask' : 'http://127.0.0.1:8791/ask';
+let askSeq = 0;
+function answerHTML(lead, groups, R, note) {
+  const withQ = R.nodes.filter(n => n.quote).sort((a, b) => a.sec - b.sec);
+  return `<div class="lead">${lead.map(x => `<p>${esc(x)}</p>`).join('')}</div>
+    ${groups.length ? `<ul class="pts">${groups.map(([k, v]) => `<li>${k ? `<em>${esc(k)}</em>` : ''}${esc(v)}</li>`).join('')}</ul>` : ''}
+    ${note ? `<p class="stepl" style="margin-top:10px">${esc(note)}</p>` : ''}
+    ${withQ.length ? `<details class="more" open><summary>근거가 된 발언 · ${withQ.length}</summary>
+      <div class="src">${withQ.map(n => `<div data-go="${n.id}">${quoteBlock(n)}</div>`).join('')}</div></details>` : ''}
+    ${R.edges.length ? `<details class="more"><summary>AI가 따라간 관계 경로 · ${R.edges.length}</summary>
+      <div class="path">${R.edges.map(e => `<div data-go="${e.d.id}">${esc(e.s.label)} <code class="${e.explicitness === 'inferred' ? 'inf' : ''}">${e.type}</code> ${esc(e.d.label)} <span class="badge ${e.explicitness === 'inferred' ? 'inf' : 'exp'}">${e.explicitness === 'inferred' ? 'inf' : 'exp'} ${e.confidence.toFixed(2)}</span></div>`).join('')}</div></details>` : ''}`;
+}
+/* AI 가 고른 노드 id → 불을 켤 노드·관계. 관계는 그래프에 실제로 있는 것만 쓴다. */
+function fromPath(path, final) {
+  const nodes = path.map(i => BY[i]).filter(Boolean), inP = new Set(nodes), rank = new Map(nodes.map((n, i) => [n, i]));
+  const edges = EDGES.filter(e => inP.has(e.s) && inP.has(e.d) && (e.axis !== 'participant' || ['ASSIGNED_TO', 'RESPONSIBLE_FOR', 'SAID_BY', 'MEMBER_OF'].includes(e.type)))
+    .sort((a, b) => Math.min(rank.get(a.s), rank.get(a.d)) - Math.min(rank.get(b.s), rank.get(b.d)));
+  /* 선이 닿은 점만 밝힌다 — 간선 없이 혼자 밝아지면 '왜 밝지?'가 된다.
+     이을 간선이 하나도 없을 때(점 하나짜리 답)만 경로 전체를 쓴다 */
+  const touched = new Set(); edges.forEach(e => { touched.add(e.s); touched.add(e.d); });
+  const lit = edges.length ? nodes.filter(n => touched.has(n)) : nodes;
+  const seeds = lit.slice(0, Math.min(3, lit.length));
+  return { nodes, lit, edges, seeds,
+    final: final.map(i => BY[i]).filter(Boolean).filter(n => !edges.length || touched.has(n)) };
+}
+function play(R, render) {                              /* 후보 점등 → 관계를 따라 빛 → 결론 강조 → 원 발화 → 답 */
+  const tl = []; let t = 0;
+  const at = (dt, fn) => { t += dt; tl.push({ at: t, fn }); };
+  at(0, () => { setStep(1); lookAt(R.nodes.filter(n => !CTX.has(n.type))); });
+  R.seeds.forEach(n => at(170, () => { n.glowTo = .7; }));
+  at(250, () => setStep(2));
+  const seen = new Set(R.seeds);
+  R.edges.forEach(e => at(Math.max(90, 2400 / Math.max(8, R.edges.length)), now => {
+    e.litTo = 1; particles.push({ e, t0: now, dur: 520 });
+    if (!seen.has(e.s)) { e.s.glowTo = .7; seen.add(e.s); }
+    setTimeout(() => { if (Q.active || e.litTo) e.d.glowTo = Math.max(e.d.glowTo || 0, .7); }, 420);
+  }));
+  at(520, () => {
+    const lit = R.lit || R.nodes;
+    lit.forEach(n => { n.glowTo = Math.max(n.glowTo || 0, .6); });
+    R.final.forEach(n => { n.glowTo = 1.2; });
+    dimTo = .92;
+    lookAt(lit.length ? lit : R.nodes, true);        /* 이어진 덩어리만 바짝 */
+    setTimeout(orbitOn, 1300);                       /* 다 당겨진 뒤부터 은은하게 돌린다 */
+  });
+  at(300, () => { setStep(3);
+    const withQ = R.nodes.filter(n => n.quote).sort((a, b) => a.sec - b.sec);
+    $('#res').innerHTML = `<div class="hd">source utterances · ${withQ.length}</div><div class="src">${withQ.map(n =>
+      `<div data-go="${n.id}">${quoteBlock(n)}</div>`).join('')}</div>`; });
+  at(700, () => { setStep(4); $('#res').innerHTML = render(); });
+  Q.active = true;
+  Q.timers = tl.map(s => setTimeout(() => s.fn(performance.now()), s.at));
+  Q.timers.push(setTimeout(() => { Q.active = false; }, t + 50));
+}
+function notFound(msg) {
+  dimTo = 0; setStep(0);
+  $('#res').innerHTML = `<div class="lead"><p>${esc(msg)}</p></div>`;
+}
+async function ask(q) {
+  q = q.trim(); if (!q) return;
+  cancelQuery(); resetLights();
+  document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel'));
+  const box = $('#box'), my = ++askSeq; box.hidden = false;
+  box.innerHTML = `<div class="bq"><b>${esc(q)}</b><button class="x" data-close>✕</button></div>
+    <div class="steps">${STEP_NAMES.map(() => '<span></span>').join('')}</div><div class="stepl"></div>
+    <div id="res"><div class="skel"><i></i><i></i><i></i></div></div>`;
+  box.scrollIntoView({ block: 'nearest' });
+  setStep(0); dimTo = .75;
+  /* 답이 오기 전에도 어디까지 왔는지 보이게 — 네 번째 칸까지만 혼자 넘어가고 마지막은 답이 왔을 때 */
+  const AT = [0, 1200, 2800, 4800];
+  const t0 = Date.now(), tick = setInterval(() => {
+    if (my !== askSeq) return clearInterval(tick);
+    const ms = Date.now() - t0;
+    let i = 0; while (i < AT.length - 1 && ms >= AT[i + 1]) i++;
+    setStep(i);
+    const l = box.querySelector('.stepl');
+    if (l) l.textContent = `${i + 1}/5 · ${STEP_NAMES[i]} · 찾는 중 ${(ms / 1000) | 0}초`;
+  }, 200);
+  let ai = null, why = '';
+  try {
+    const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); ai = j;
+  } catch (e) { why = String(e.message || e); }
+  clearInterval(tick);
+  if (my !== askSeq) return;                            /* 기다리는 사이 다른 걸 물었다 */
+  if (ai) {
+    if (!ai.path.length) return notFound(ai.answer.join(' ') || '이 질문에 해당하는 내용을 회의에서 찾지 못했어요.');
+    const R = fromPath(ai.path, ai.final);
+    return play(R, () => answerHTML(ai.answer, ai.items.map(x => [x.tag || '', x.text]), R, ''));
+  }
+  // 서버가 없을 때 — 규칙 기반 (결정·할 일·미결 질문만 잘 다룬다)
+  const R = explore(q);
+  if (R.fail) return notFound('이 질문에 걸리는 내용을 찾지 못했어요. 다르게 물어봐 주세요.');
+  const A = compose(R);
+  play(R, () => answerHTML(A.lead, A.groups, R, `AI 서버에 닿지 못해 규칙 기반으로 찾았어요 (${why.slice(0, 60)}). AI 탐색은 발표자 노트북에서만 돌아요.`));
+}
+$('#askf').addEventListener('submit', e => { e.preventDefault(); ask($('#askq').value); });
+
+/* ================= 6. 왼쪽 — 질문에 대한 답만 ================= */
+/* 결정·조건부·미결·업무 목록은 실제 서비스 웹(meetnote)이 보여 준다.
+   여기는 그래프가 질문에 어떻게 답하는지만 본다. */
+NODES.forEach(n => { n.inView = true; });
+
+$('#mtitle').textContent = G.meeting.title;
+$('#mmeta').textContent = `${G.meeting.date} · ${G.meeting.duration} · node ${NODES.length} · edge ${EDGES.length} · explicit ${EDGES.filter(e => e.explicitness === 'explicit').length}`;
+/* ================= 7. 설계 들여다보기 =================
+   숫자와 목록은 지금 그려진 그래프(graph.js)에서 바로 센다. 설명 문장만 가이드를 따른다. */
+const TYPE_DESC = {
+  Evidence: '인터뷰·실험·조사처럼 주장을 받치는 사실', Concern: '제안에 대해 나온 우려나 해결할 문제', Question: '누군가 던진 물음',
+  Issue: '이 논의에서 답해야 했던 쟁점', Claim: '근거를 가진 판단', Proposal: '이렇게 하자는 안', Condition: '결론이 성립하려면 필요한 것',
+  Decision: '합의하고 넘어간 결론', Conditional: '조건을 달고 넘어간 결론', Open: '정하지 못하고 남은 것', Action: '결론이 만든 할 일',
+  Participant: '회의에 참여한 사람', Team: 'UX · ID · BX 파트', Meeting: '다음 회의·발표·자문 같은 이후 일정' };
+const EDGE_DESC = {
+  SUPPORTS: '근거가 주장·안을 받친다', CHALLENGES: '제안의 문제나 우려를 제기한다', OPPOSES: '정면으로 반박한다', QUESTIONS: '물음을 던진다',
+  RESPONDS_TO: '앞선 말에 답한다', CLARIFIES: '구체화한다', REVISES: '앞선 안을 고친다', REPLACES: '새로운 제안이 이전 제안을 대체한다',
+  REFERENCES: '다른 것을 참조한다', CONVERGES_WITH: '다른 결론과 같은 곳으로 모인다',
+  ADOPTED_AS: '안이 결론으로 채택된다', RESOLVES: '결론을 내려 쟁점을 해결한다', LEADS_TO: '결론으로 이어진다', CREATES: '결론이 업무를 만든다',
+  DERIVED_FROM: '무엇에서 파생됐다', REQUIRES: '결론이 전제를 필요로 한다', REMAINS_UNRESOLVED: '다음 회의로 넘어간다',
+  ASSIGNED_TO: '업무를 누가 맡는다', RESPONSIBLE_FOR: '책임을 진다', AFFECTS: '결론이 누구에게 영향을 준다', MEMBER_OF: '참여자가 파트에 속한다', SAID_BY: '이 내용을 말한 참여자와 연결한다' };
+const AXIS_KO = { discussion: [AXIS_EN.discussion, '논의 관계', '논의가 어떻게 움직였는가'], outcome: [AXIS_EN.outcome, '결과 관계', '논의가 무엇으로 이어졌는가'],
+  participant: [AXIS_EN.participant, '사람 관계', '누가 관련됐는가'] };
+const GROUPS_N = [['Discussion', '논의', ['Issue', 'Evidence', 'Concern', 'Question', 'Claim', 'Proposal', 'Condition']],
+  ['Outcome', '결과', ['Decision', 'Conditional', 'Open', 'Action']], ['Context', '사람 · 맥락', ['Participant', 'Team', 'Meeting']]];
+
+/* 실제 그래프에서 대표 사슬 하나 — 수정(REVISES/REPLACES)이 있었던 결론을 거꾸로 따라간다 */
+function chainOf(topicId) {
+  const d = NODES.find(n => n.topic === topicId && (n.type === 'Decision' || n.type === 'Conditional')); if (!d) return null;
+  const adopt = d.in.find(e => e.type === 'ADOPTED_AS'); if (!adopt) return null;
+  const nu = adopt.s, rev = nu.out.find(e => e.type === 'REVISES' || e.type === 'REPLACES');
+  const old = rev && rev.d, ch = old && old.in.find(e => ['CHALLENGES', 'OPPOSES'].includes(e.type));
+  const sup = nu.in.find(e => e.type === 'SUPPORTS');
+  const act = d.out.find(e => e.type === 'CREATES'), who = act && act.d.out.find(e => e.type === 'ASSIGNED_TO');
+  const steps = [];
+  if (ch) steps.push([ch.s], [ch, 'CHALLENGES']);
+  if (old) steps.push([old], [rev, rev.type]);
+  if (sup && !ch) steps.push([sup.s], [sup, 'SUPPORTS']);
+  steps.push([nu], [adopt, 'ADOPTED_AS'], [d]);
+  if (act) steps.push([act, 'CREATES'], [act.d]);
+  if (who) steps.push([who, 'ASSIGNED_TO'], [who.d]);
+  return { title: TOPIC[topicId].title, steps };
+}
+function chainHTML(c) {
+  return `<div class="dc"><div class="k">${esc(c.title)}</div><div class="chain">${c.steps.map(s =>
+    s.length === 1 ? `<span class="nd"><em>${s[0].type}</em>${esc(s[0].label)}</span>`
+      : `<span class="ed${s[0].explicitness === 'inferred' ? ' inf' : ''}">→ ${s[1]}</span>`).join('')}</div></div>`;
+}
+function axesSVG() {                                   /* 첫 화면과 같은 모서리 — X 오른쪽, Y 위, Z 앞 */
+  return `<svg viewBox="0 0 240 210" width="240" height="210" role="img" aria-label="X Y Z 축">
+    <g stroke-width="1.2" fill="none">
+      <line x1="70" y1="150" x2="222" y2="150" stroke="#8aa0e6"/><line x1="70" y1="150" x2="70" y2="24" stroke="#a98fff"/>
+      <line x1="70" y1="150" x2="18" y2="196" stroke="#62e0ef"/></g>
+    <g fill="#c9d3ff">${[95, 120, 145, 170, 195].map(x => `<rect x="${x}" y="149" width="2" height="2"/>`).join('')}
+      ${[125, 100, 75, 50].map(y => `<rect x="69" y="${y}" width="2" height="2"/>`).join('')}</g>
+    <g fill="#e6e9f5">${[[110, 128, 2.2], [132, 92, 2.6], [160, 110, 2], [178, 62, 3.4], [196, 40, 2.6], [120, 70, 1.8], [150, 132, 1.6]]
+      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" opacity=".85"/>`).join('')}</g>
+    <g font-family="ui-monospace,Menlo,monospace" font-size="10" font-weight="700">
+      <text x="226" y="154" fill="#8aa0e6">X</text><text x="66" y="17" fill="#a98fff">Y</text><text x="8" y="206" fill="#62e0ef">Z</text></g>
+  </svg>`;
+}
+function renderDesign() {
+  const body = NODES.filter(n => !CTX.has(n.type));
+  const cnt = t => NODES.filter(n => n.type === t).length;
+  const exp = EDGES.filter(e => e.explicitness === 'explicit').length;
+  const byType = {}; EDGES.forEach(e => { byType[e.type] = (byType[e.type] || 0) + 1; });
+  const maxE = Math.max(...Object.values(byType));
+  const withQuote = NODES.filter(n => n.quote).length;
+  const lvRows = [[4, 'Action'], [3, 'Decision · Conditional · Open'], [2, 'Claim · Proposal · Condition'], [1, 'Issue'], [0, 'Evidence · Concern · Question']];
+  const lvDesc = { 4: '업무', 3: '결론', 2: '주장 · 안', 1: '쟁점', 0: '근거 · 걸림' };
+  const dens = body.slice().sort((a, b) => b.density - a.density).slice(0, 3);
+  const edgeRows = ['discussion', 'outcome', 'participant'].map(ax => {
+    const types = Object.keys(EDGE_DESC).filter(t => EDGES.some(e => e.type === t && e.axis === ax)).sort((a, b) => byType[b] - byType[a]);
+    const [en, ko, q] = AXIS_KO[ax];
+    return `<div class="tr h"><span>${en} · ${ko}</span><span></span><span>${q}</span><span class="bw"></span></div>`
+      + types.map(t => `<div class="tr${KEY.has(t) ? ' key' : ''}"><span><code>${t}</code>${KEY.has(t) ? '<span class="tag">KEY</span>' : ''}</span>
+        <span class="n">${byType[t]}</span><span class="d">${EDGE_DESC[t]}</span><span class="bar bw"><i style="width:${(byType[t] / maxE * 100).toFixed(0)}%"></i></span></div>`).join('');
+  }).join('');
+  const chains = ['t1', 't7', 't9'].map(chainOf).filter(Boolean);
+
+  $('#design').innerHTML = `<div class="dz">
+  <div class="dh"><b>IRIS</b><span>Ontology Design · 설계 들여다보기</span><button type="button" id="dclose">닫기 ✕</button></div>
+
+
+  <header class="hero">
+    <div class="eyebrow">MEETING ONTOLOGY · DATA FLOW</div>
+    <h1 class="q1">회의의 문장이<br>탐색 가능한 맵이 되는 과정.</h1>
+    <p class="q2">사람·논의·결과를 각각의 노드로 두고, 누가 말했는지·무엇을 바꿨는지·누가 맡는지를 관계로 연결합니다. 회의 결과뿐 아니라 그 결과에 이른 과정과 책임까지 탐색합니다.</p>
+    <div class="stat"><div><b>${NODES.length}</b>개의 정보 · 노드</div><div><b>${EDGES.length}</b>개의 연결 · 관계</div><div><b>${withQuote}</b>개의 원문이 연결된 노드</div></div>
+  </header>
+
+  <section class="dsec" aria-labelledby="journey-title"><div class="lb">참여자·원문 → 의미 분류 → 관계 정의 → XYZ 배치 → 경로 조회</div>
+    <h2 id="journey-title">맵을 구축하고 활용하는 다섯 단계</h2>
+    <p class="sub">참여자와 맥락을 기록하고, 발언의 의미와 관계를 구분해 XYZ 맵으로 구성합니다. 질문은 이 연결 구조를 조회하는 또 하나의 입구입니다.</p>
+    <div class="flow-phases"><span>01 — 04 &nbsp; 맵 구축 · 사람·논의·결과의 관계</span><span>05 &nbsp; 맵 활용 · 관계 경로 탐색</span></div>
+    <ol class="journey">${[
+      ['참여자·원문 기록',[
+        ['사람과 회의 맥락 기록','참여자를 독립된 노드로 두고, 소속·직책·회의 역할을 구분','참여자 → 소속 파트 / 직책 → 확인된 경우 기록','현재 데이터 · 사람 4명, 파트 3개 / 직책은 미확인'],
+        ['발언과 발언자 연결','발언에서 정리한 내용마다 원문·시각·말한 사람을 보존','내용 노드 → 발언자 → 참여자 노드','말한 사람 ≠ 담당자 / 책임은 별도 관계로 연결'],
+        ['주제와 일정 구분','무엇에 관한 논의인지와 후속 회의·발표를 구분','주제 · 여러 내용 노드를 묶는 속성','일정 · 다음 회의·발표·자문을 각각 노드로 기록']
+      ],'누가 · 어떤 맥락에서 · 무엇을 말했는가','원문과 참여자 정보 확인'],
+      ['논의의 의미 구분',[
+        ['노드는 무엇을 나타내나','한 문장 전체가 아니라 독립적으로 연결할 수 있는 주장·제안·결정 등의 의미','한 발언 안의 제안 + 우려 → 서로 다른 노드','참여자·파트·일정도 독립 노드 / 원문은 출처 속성'],
+        ['발언의 역할을 판별하는 기준','표현, 앞선 발언과의 관계, 합의 여부를 함께 확인','근거 · 관찰·조사·실험 / 제안 · 실행할 안 제시','우려 · 문제·위험 제기 / 조건 · 성립에 필요한 전제'],
+        ['논의 결과를 구분하는 기준','단어 하나보다 회의에서 실제로 어떤 상태에 이르렀는지 확인','결정 · 합의·확정 / 조건부 · 전제를 달고 수용','미결 · 판단 보류 / 업무 · 이후 수행할 구체적 행동']
+      ],'사람·논의·결과를 구별한 노드','역할 분류 · 원문 연결'],
+      ['의미 있는 관계 연결',[
+        ['논의 관계 · 무엇이 무엇을 바꿨나','언어 단서와 응답 대상, 수정 전후 내용을 함께 판단','“하지만” + 같은 제안의 위험 지적 → 문제 제기','근거 → 뒷받침 → 제안 / 새 제안 → 수정 → 이전 안'],
+        ['사람·결과 관계 · 누구와 어떻게 이어지나','발언·소속·책임과 채택·해결·업무 생성을 구분','내용 → 발언자 → 사람 / 사람 → 소속 → 파트','제안 → 채택 → 결정 → 업무 생성 → 할 일 → 담당 → 사람'],
+        ['관계의 근거와 방향 기록','단순한 동시 언급이나 발언 순서만으로 인과관계를 만들지 않음','실선 · 관계가 드러난 발언 / 점선 · 맥락에서 추론','관계마다 출발·도착·종류·원문·확신도를 함께 기록']
+      ],'대상 + 관계의 의미 + 연결 대상','논의 · 사람 · 결과 관계'],
+      ['XYZ 맵으로 구성',[
+        ['X · 회의 시간','논의 노드는 근거 발언이 나온 시각을 X 좌표로 변환','X = 발언 시각 ÷ 회의 길이 → 시간축 위치','회전해도 시간 의미는 유지 / 화면의 좌우와는 다름'],
+        ['Y · 정보의 역할','논의가 근거에서 쟁점·제안·결론·업무로 이어지는 구조','근거·우려·질문 → 쟁점 → 주장·제안·조건','→ 결정·조건부·미결 → 업무 / 중요도 순위 아님'],
+        ['Z · 연결 범위','이웃 노드 수와 연결된 파트·발언자 범위를 합산해 배치','연결 범위가 큰 논의 → Z 방향으로 구분','사람·파트는 별도 맥락 영역 / 일정은 후속 영역']
+      ],'시간 · 역할 · 연결 범위를 가진 맵','속성에서 좌표 계산'],
+      ['질문으로 경로 탐색',[
+        ['질문을 탐색 기준으로 해석','대상·의도·참여자 범위에 따라 필요한 노드와 관계 선택','“UX의 할 일?” → 업무 → 담당 → UX','“누가 이 안을 말했나?” → 제안 → 발언자 → 사람'],
+        ['관계를 따라 이유와 책임 조회','같은 주제의 항목 나열보다 관계가 이어지는 과정을 확인','“왜 바뀌었나?” → 우려·근거 → 수정 → 채택','“다음에 누가 하나?” → 결정 → 업무 → 담당자'],
+        ['답변과 경로를 함께 반환','선택된 실제 노드·관계를 강조하고 근거 원문을 연결','맵 · 선택된 노드와 관계 / 답변 · 질문에 맞는 설명','출처 · 발언자와 시각 / 추론 · 확인된 관계와 구분']
+      ],'무엇 · 왜 · 누구까지 연결된 답변','그래프 조회 · 근거 확인']
+    ].map(([title,cards,result,method],i)=>`<li><div class="step-head"><span class="step-number" aria-label="${i+1}단계">${i+1}</span><h3>${title}</h3></div>${cards.map(([heading,desc,ex1,ex2])=>`<div class="logic-card"><h4>${heading}</h4><p>${desc}</p><div class="logic-example">${ex1}</div><div class="logic-example">${ex2}</div></div>`).join('')}<div class="output-arrow" aria-hidden="true">↓</div><div class="logic-result">${result}</div><div class="step-engine">${method}</div></li>`).join('')}</ol>
+    <details class="implementation-note"><summary>설계 원칙과 현재 구현의 범위</summary><p>현재 노드와 의미 관계는 원문을 검토해 사전 정의하며 빌드 시 출처를 대조합니다. 질문 시 AI가 이 그래프를 읽습니다. 분류 기준은 자동 분류기가 이미 구현되었다는 의미가 아닙니다. 참여자의 소속은 기존 데이터의 추론 상태를 유지하고, 직책·회의 역할은 확인되지 않아 채우지 않았습니다. 현재 저장 방식은 graph.js이며 별도의 그래프 DB 엔진은 사용하지 않습니다. 노드·방향 있는 관계·속성을 갖춘 그래프 데이터 모델을 시각화한 프로토타입입니다.</p></details>
+  </section>
+
+  <section class="dsec" aria-labelledby="ibis-title"><div class="lb">RELATION MAP · 관계 맵</div>
+    <h2 id="ibis-title">회의 한 시간이 보드 한 장이 되기까지</h2>
+    <p class="sub">관계 맵은 같은 회의를 <b>쟁점 하나 = 보드 하나</b>로 좁혀 보여 주는 화면입니다. 이 온톨로지가 회의 전체를 하나의 그래프로 펼친다면, 관계 맵은 “무엇을 두고 갈렸고 어디로 닫혔는지”만 남깁니다. 아래 다섯 걸음을 거칩니다.</p>
+
+    <div class="algo">
+      <div>
+        <div class="hd">쟁점 나누기</div>
+        <div class="st">회의를 논의 단위로 끊기</div>
+        <div class="tx">한 시간짜리 말뭉치를 주제가 바뀌는 지점에서 끊습니다. 논의 하나가 평균 5분은 되어야 하고, 회의 하나는 6~16개로 봅니다. 더 잘게 쪼개면 주제가 아니라 발언 목록이 됩니다.</div>
+        <div class="fig"><svg viewBox="0 0 190 150" aria-hidden="true">
+          <rect x="6" y="8" width="178" height="20" rx="5" fill="#e7e9f0" stroke="#d8dce6"/>
+          <text x="95" y="22" text-anchor="middle" font-size="9.5" fill="#6e7a8d">회의 전사문 · 1시간 23분</text>
+          <path d="M95 32v12" stroke="#b9c0cf" stroke-width="1.2"/><path d="M95 48l-3.5-6h7z" fill="#b9c0cf"/>
+          <g font-size="9" fill="#fff" text-anchor="middle">
+            <rect x="6" y="52" width="54" height="26" rx="5" fill="#3a3f52"/><text x="33" y="68">논의 01</text>
+            <rect x="68" y="52" width="54" height="26" rx="5" fill="#3a3f52"/><text x="95" y="68">논의 02</text>
+            <rect x="130" y="52" width="54" height="26" rx="5" fill="#3a3f52"/><text x="157" y="68">논의 03</text>
+          </g>
+          <g stroke="#d8dce6" stroke-width="1"><path d="M6 90h178"/><path d="M6 86v8M60 86v8M126 86v8M184 86v8"/></g>
+          <g font-size="8" fill="#9aa3b4"><text x="6" y="104">0:00</text><text x="150" y="104">1:23:04</text></g>
+          <text x="95" y="126" text-anchor="middle" font-size="9" fill="#6e7a8d">논의마다 쟁점을 하나씩 세웁니다</text>
+        </svg></div>
+      </div>
+
+      <div>
+        <div class="hd">역할 정하기</div>
+        <div class="st">말마다 무슨 역할인지</div>
+        <div class="tx">한 번의 발언에 제안과 근거가 함께 들어 있기도 합니다. 문장이 아니라 <b>따로 떼어 이을 수 있는 뜻</b>을 단위로 봅니다. 논의를 움직이지 않은 말은 남기지 않습니다.</div>
+        <div class="fig"><svg viewBox="0 0 190 150" aria-hidden="true">
+          <rect x="24" y="6" width="142" height="30" rx="6" fill="#fff" stroke="#e2e5ee"/>
+          <text x="95" y="19" text-anchor="middle" font-size="9" fill="#6e7a8d">“부스트는 재미 때문에 남기되,</text>
+          <text x="95" y="30" text-anchor="middle" font-size="9" fill="#6e7a8d">메인은 안전한 학습으로 가죠”</text>
+          <path d="M95 38v8M58 46h74M58 46v8M132 46v8" stroke="#b9c0cf" stroke-width="1.2" fill="none"/>
+          <g text-anchor="middle" font-size="9">
+            <rect x="20" y="56" width="76" height="22" rx="5" fill="#e5ebf7" stroke="#d2dcf0"/><text x="58" y="70" fill="#365493">주장 · 메인은 안전</text>
+            <rect x="100" y="56" width="70" height="22" rx="5" fill="#f4e7e3" stroke="#ecd5cf"/><text x="135" y="70" fill="#a3584a">근거 · 재미 유지</text>
+          </g>
+          <text x="95" y="98" text-anchor="middle" font-size="8.5" fill="#9aa3b4">쟁점 · 주장 · 근거 · 반론 · 우려 · 조건 · 미결</text>
+          <text x="95" y="124" text-anchor="middle" font-size="9" fill="#6e7a8d">일곱 가지 가운데 하나로 나눕니다</text>
+        </svg></div>
+      </div>
+
+      <div>
+        <div class="hd">카드로 묶기</div>
+        <div class="st">한 장에 담을 것 고르기</div>
+        <div class="tx">일곱 가지를 다 그리면 선이 거미줄이 됩니다. 근거·조건·우려는 제 주장 카드 <b>안에 설명으로 넣고</b>, 따로 세우는 것은 맞선 의견뿐입니다.</div>
+        <div class="fig"><svg viewBox="0 0 190 150" aria-hidden="true">
+          <g text-anchor="middle" font-size="8.5">
+            <rect x="4" y="6" width="56" height="18" rx="4" fill="#e5ebf7" stroke="#d2dcf0"/><text x="32" y="18" fill="#365493">주장</text>
+            <rect x="4" y="30" width="56" height="16" rx="4" fill="#eef0f5" stroke="#e0e3ea"/><text x="32" y="41" fill="#7b8699">근거</text>
+            <rect x="4" y="50" width="56" height="16" rx="4" fill="#eef0f5" stroke="#e0e3ea"/><text x="32" y="61" fill="#7b8699">조건</text>
+            <rect x="4" y="70" width="56" height="16" rx="4" fill="#eef0f5" stroke="#e0e3ea"/><text x="32" y="81" fill="#7b8699">우려</text>
+            <rect x="4" y="96" width="56" height="18" rx="4" fill="#f7e3e1" stroke="#eecfcb"/><text x="32" y="108" fill="#b3493c">반론</text>
+          </g>
+          <path d="M64 46h16" stroke="#b9c0cf" stroke-width="1.2" fill="none"/><path d="M86 46l-7-3.5v7z" fill="#b9c0cf"/>
+          <path d="M64 105h16" stroke="#e0a7a0" stroke-width="1.2" fill="none"/><path d="M86 105l-7-3.5v7z" fill="#e0a7a0"/>
+          <rect x="90" y="16" width="94" height="62" rx="9" fill="#eff3fb" stroke="#dde4f2"/>
+          <text x="100" y="33" font-size="9" fill="#2a2a2a" font-weight="600">주장 카드 한 장</text>
+          <g font-size="8" fill="#8d97a8"><text x="100" y="48">근거 …</text><text x="100" y="60">조건 · …</text><text x="100" y="72">우려 · …</text></g>
+          <rect x="90" y="90" width="94" height="30" rx="9" fill="#fdf1f0" stroke="#f2d9d6"/>
+          <text x="100" y="109" font-size="9" fill="#b3493c" font-weight="600">반론은 따로 한 장</text>
+          <text x="95" y="140" text-anchor="middle" font-size="9" fill="#6e7a8d">한 논의에 카드 4~9장</text>
+        </svg></div>
+      </div>
+
+      <div>
+        <div class="hd">자리 잡기</div>
+        <div class="st">가로는 시간, 세로는 깊이</div>
+        <div class="tx">오른쪽으로 갈수록 뒤에 나온 이야기이고, 아래로 갈수록 그 이야기를 파고든 말입니다. 쟁점이 맨 위 왼쪽, 결론이 맨 아래 오른쪽에 놓입니다.</div>
+        <div class="fig"><svg viewBox="0 0 190 150" aria-hidden="true">
+          <path d="M30 14h146" stroke="#c7ccd8" stroke-width="1"/><path d="M180 14l-7-3.5v7z" fill="#c7ccd8"/>
+          <text x="176" y="9" text-anchor="end" font-size="8" fill="#9aa3b4">시간의 흐름</text>
+          <path d="M22 22v104" stroke="#c7ccd8" stroke-width="1"/><path d="M22 130l-3.5-7h7z" fill="#c7ccd8"/>
+          <text x="16" y="78" text-anchor="middle" font-size="8" fill="#9aa3b4" transform="rotate(-90 16 78)">논의의 깊이</text>
+          <rect x="32" y="22" width="44" height="20" rx="4" fill="#161919"/><text x="54" y="36" text-anchor="middle" font-size="8" fill="#fff">쟁점</text>
+          <rect x="32" y="50" width="44" height="20" rx="4" fill="#e5ebf7" stroke="#d2dcf0"/><text x="54" y="64" text-anchor="middle" font-size="8" fill="#365493">주장</text>
+          <rect x="84" y="50" width="44" height="20" rx="4" fill="#e5ebf7" stroke="#d2dcf0"/><text x="106" y="64" text-anchor="middle" font-size="8" fill="#365493">주장</text>
+          <rect x="84" y="78" width="44" height="20" rx="4" fill="#f7e3e1" stroke="#eecfcb"/><text x="106" y="92" text-anchor="middle" font-size="8" fill="#b3493c">반론</text>
+          <rect x="132" y="106" width="46" height="20" rx="4" fill="#cfe8fb" stroke="#b7dbf6"/><text x="155" y="120" text-anchor="middle" font-size="8" fill="#1e6a98">결론</text>
+          <g stroke="#c3cede" stroke-width="1.2" fill="none"><path d="M54 44v4M76 32h4v18h2"/><path d="M106 72v4"/></g>
+          <path d="M128 88h4v16h2" stroke="#d99a2b" stroke-width="1.4" fill="none"/>
+        </svg></div>
+      </div>
+
+      <div>
+        <div class="hd">원문에 맞추기</div>
+        <div class="st">실제 발언에 묶고 되돌리기</div>
+        <div class="tx">카드마다 그 말이 나온 원문 구절을 달고, 그 발언의 시각으로 카드 시각을 맞춥니다. 구절을 못 찾으면 카드를 만들지 않고, 규칙을 어긴 카드는 어긴 항목만 집어 다시 고칩니다.</div>
+        <div class="fig"><svg viewBox="0 0 190 150" aria-hidden="true">
+          <rect x="4" y="8" width="80" height="34" rx="7" fill="#eff3fb" stroke="#dde4f2"/>
+          <text x="12" y="23" font-size="9" fill="#2a2a2a" font-weight="600">주장 카드</text>
+          <text x="12" y="35" font-size="8" fill="#8d97a8">“…메인으로 가죠”</text>
+          <path d="M86 25h12" stroke="#b9c0cf" stroke-width="1.2" fill="none"/><path d="M102 25l-7-3.5v7z" fill="#b9c0cf"/>
+          <rect x="104" y="6" width="82" height="38" rx="6" fill="#fff" stroke="#e2e5ee"/>
+          <rect x="108" y="22" width="62" height="10" rx="3" fill="#dceafb"/>
+          <text x="110" y="18" font-size="7.5" fill="#9aa3b4">하린 · 1:05</text>
+          <text x="111" y="30" font-size="7.5" fill="#4a5a7a">메인은 안전한 학습으로</text>
+          <text x="95" y="60" text-anchor="middle" font-size="8.5" fill="#6e7a8d">카드 시각 = 그 발언이 나온 시각</text>
+          <g text-anchor="middle" font-size="8.5">
+            <rect x="12" y="76" width="56" height="22" rx="5" fill="#3a3f52"/><text x="40" y="91" fill="#fff">규칙 검사</text>
+            <rect x="122" y="76" width="56" height="22" rx="5" fill="#e7e9f0" stroke="#d8dce6"/><text x="150" y="91" fill="#6e7a8d">어긴 곳만 수정</text>
+          </g>
+          <path d="M70 87h44" stroke="#b9c0cf" stroke-width="1.2" fill="none"/><path d="M118 87l-7-3.5v7z" fill="#b9c0cf"/>
+          <path d="M150 102v8H40v-6" stroke="#b9c0cf" stroke-width="1.2" fill="none"/><path d="M40 94l-3.5 7h7z" fill="#b9c0cf"/>
+          <text x="95" y="130" text-anchor="middle" font-size="8.5" fill="#6e7a8d">통과할 때까지 되돌립니다</text>
+        </svg></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:20px">
+      <div class="dc"><div class="k">01 — 무엇을 쟁점으로 보나</div><h4>그 자리에서 답을 내야 했던 물음 하나</h4>
+        <p>논의를 끊는 기준은 ‘말이 길어졌는가’가 아니라 <b>답이 필요했는가</b>입니다. 묻고 답한 자리, 서로 다른 안이 나온 자리, 한 사람이 정리해 와서 팀이 확인한 자리 — 이 셋은 모두 답이 필요했던 자리입니다. 그 안에서 <b>답해야 했던 것 하나</b>를 골라 쟁점으로 세웁니다.</p>
+        <p>반대로 잡담·안부·일정 확인만 오간 대목, 전사가 뭉개져 무슨 말인지 알 수 없는 대목은 논의로 만들지 않습니다. 결론이 안 난 자리도 그대로 남깁니다 — 흐지부지된 것도 기록이기 때문입니다.</p></div>
+      <div class="dc"><div class="k">01 — 어떤 단서로 추리나</div><h4>끊는 자리와 합치는 자리</h4>
+        <p><b>끊는다</b> · 다루는 대상이 바뀌고, 앞 이야기를 더 받지 않을 때.<br>
+        <b>합친다</b> · 뒤에서 같은 주제로 돌아왔으면 한 논의로 묶고 구간을 그 범위로 넓힙니다.<br>
+        <b>넣지 않는다</b> · 한 주제 안의 세부 항목은 따로 끊지 않고 그 논의의 카드로 넣습니다.<br>
+        <b>버린다</b> · 논의를 움직이지 않은 말, 근거 구절을 못 찾는 말.</p>
+        <p>이 규칙을 지켰는지는 사람이 아니라 코드가 셉니다. 논의가 6개보다 적거나 16개보다 많으면, 또는 평균 5분을 밑돌면 되돌려 다시 묶습니다.</p></div>
+    </div>
+
+    <div class="dc" style="margin-top:8px"><div class="k">01 — 쟁점 제목 쓰는 법</div><h4>그 자리가 어떤 자리였는지에 따라 달라집니다</h4>
+      <div class="cases">
+        <div><span>두 갈래에서 고른 자리</span><b>물음으로</b><em>부스트를 쓰는 단체 장면을 남길 것인가</em></div>
+        <div><span>값·대상·범위를 좁혀 정한 자리</span><b>안건 이름으로</b><em>프로젝터 장착 위치와 사출 범위</em></div>
+        <div><span>해 온 것을 공유·점검한 자리</span><b>안건 이름으로</b><em>인터뷰로 다시 잡은 제품의 중심 가치</em></div>
+      </div>
+      <p style="margin-top:10px">고른 자리가 아니었는데 물음으로 적으면, 읽는 사람이 없던 대립을 찾게 됩니다. 한 사람이 정리해 와서 공유한 자리를 “A냐 B냐”로 쓰지 않는 이유입니다.</p></div>
+
+    <p class="sub" style="margin-top:16px">다섯 걸음 가운데 품을 가장 많이 들인 곳은 마지막입니다. “더 잘 써 달라”고 다시 부탁하는 대신, <b>지켜야 할 것을 숫자와 형태로 적어 두고 어긴 카드만 이름을 불러 되돌립니다.</b> 섹션은 6~16개, 보드마다 쟁점은 하나, 카드는 4~9장, 주장은 제안형으로, 설명은 25~70자, 근거 구절은 말한 사람의 발언 안에 실제로 있을 것 — 이런 것들입니다. 그래서 같은 회의를 다시 돌려도 문장은 조금씩 달라져도 <b>구조는 흔들리지 않습니다.</b></p>
+  </section>
+
+  <section class="dsec"><div class="lb">ANATOMY · 카드 한 장</div>
+    <h2>카드에는 네 가지가 들어갑니다</h2>
+    <p class="sub">보드에 놓이는 카드는 세 종류입니다. 아래는 실제 화면에 그려지는 카드 그대로이고, 오른쪽은 각 자리에 무엇이 들어가는지입니다.</p>
+
+    <div class="anat">
+      <div class="an">
+        <div class="fig"><div class="cap">쟁점 · 보드마다 한 장</div>
+          <div class="mn issue"><div class="lab">쟁점</div><h5>인터뷰로 다시 잡은 제품의 중심 가치</h5></div></div>
+        <ol>
+          <li><i>1</i><div><b>라벨</b> — 이 보드가 무엇을 다루는지 알리는 한 단어. 쟁점 카드는 보드마다 딱 한 장이라 번호나 설명을 붙이지 않습니다.</div></li>
+          <li><i>2</i><div><b>제목</b> — 의견이 실제로 갈렸으면 <b>물음</b>으로, 한 사람이 정리해 와서 공유한 자리면 <b>명사 한 덩어리</b>로 적습니다. 공유한 자리를 물음으로 쓰면 없던 논쟁이 있었던 것처럼 읽히기 때문입니다.<em>중심 가치를 어디에 둘 것인가 / 제품 기능과 강도 단계 구성</em></div></li>
+          <li><i>3</i><div><b>프로필 없음</b> — 쟁점은 누구 한 사람의 말이 아니라 그 자리에서 다뤄진 물음이라, 얼굴을 붙이지 않습니다.</div></li>
+          <li><i>4</i><div><b>검은 카드</b> — 보드에서 가장 먼저 눈에 들어오도록 유일하게 어두운 색을 씁니다.</div></li>
+        </ol>
+      </div>
+
+      <div class="an">
+        <div class="fig"><div class="cap">주장 · 보드의 본문</div>
+          <div class="mn"><div class="who"></div>
+            <h5>안전하게 전문가의 움직임을 익히는 경험을 메인에 두자</h5>
+            <p>몸을 프로 수준까지 끌어올리는 쪽은 강조하지 않기로 했다 · 조건 · 강화 요소는 서브로 남긴다</p>
+            <div class="more">눌러서 전부 보기</div></div></div>
+        <ol>
+          <li><i>1</i><div><b>프로필 = 주요 발언자</b> — 이 주장을 <b>민 사람</b> 한 명입니다. 거들어 준 사람이 여럿이어도 가장 먼저, 가장 세게 민 사람 하나만 붙입니다. 말한 사람과 담당자는 다른 정보라, 책임은 할 일 쪽에서 따로 봅니다.</div></li>
+          <li><i>2</i><div><b>제목은 제안형</b> — “~한다”가 아니라 <b>“~하자 · ~해야 한다 · ~기로 한다”</b>로 끝맺습니다. 읽는 사람이 이게 결론인지 누군가의 의견인지 헷갈리지 않게 하려는 규칙입니다. 12~60자.<em>메인은 안전한 학습으로 가자</em></div></li>
+          <li><i>3</i><div><b>캡션(설명)</b> — 왜 그렇게 말했는지 한 문장. 여기에 <b>딸린 말이 함께 들어옵니다.</b> 근거는 그대로, 조건은 <code>조건 ·</code>, 우려는 <code>우려 ·</code> 를 앞에 달고 가운뎃점으로 이어 붙습니다. 25~70자.<em>근거 그대로 · 조건 · … · 우려 · …</em></div></li>
+          <li><i>4</i><div><b>잘렸을 때</b> — 세 줄이 넘으면 아래에 <b>눌러서 전부 보기</b>가 뜹니다. 카드를 누르면 그 자리에서 펼쳐지고, 왼쪽 원문에서 그 발언이 함께 밝아집니다.</div></li>
+        </ol>
+      </div>
+
+      <div class="an">
+        <div class="fig"><div class="cap">결론 · 보드가 닿은 자리</div>
+          <div class="mn res"><div class="lab">결론</div><h5>메인은 안전한 학습으로 가고 강화·재미는 서브로 남긴다</h5></div></div>
+        <ol>
+          <li><i>1</i><div><b>라벨</b> — 결론은 세 가지 상태로 나뉩니다. <b>확정</b>(합의하고 넘어감), <b>조건부</b>(전제를 달고 받음), <b>미결</b>(정하지 못하고 남김).</div></li>
+          <li><i>2</i><div><b>제목은 단정형</b> — 무엇을 하기로 했는지 끝맺는 문장으로 씁니다. 미결이면 길게 쓰지 않고 남은 안건 이름만 짧게 적습니다.<em>신발과 어떻게 결착할지 (미결)</em></div></li>
+          <li><i>3</i><div><b>프로필 없음</b> — 한 사람의 말이 아니라 보드 전체가 닿은 자리이기 때문입니다.</div></li>
+          <li><i>4</i><div><b>비워 두지 않습니다</b> — 아무도 닫지 않은 채 넘어갔으면 빈칸으로 두지 않고 <b>‘미결’로 남깁니다.</b> 흐지부지된 것도 기록이기 때문입니다. 반대로 확정이 전체의 3분의 2를 넘으면 대개 잘못 읽은 것으로 보고 다시 확인합니다.</div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="dsec"><div class="lb">LINES · 선 읽는 법</div>
+    <h2>선은 세 가지만 말합니다</h2>
+    <p class="sub">선이 많아지면 보드는 금세 거미줄이 됩니다. 그래서 이을 수 있는데도 일부러 긋지 않는 선이 있습니다.</p>
+    <div class="lines">
+      <div class="dc"><div class="k">01 흐름</div><h4>실선 · 한쪽 화살표</h4>
+        <p>쟁점에서 주장으로, 주장에서 결론으로 <b>이야기가 흘러간 방향</b>입니다. 화살표는 늘 먼저 나온 말에서 나중에 나온 말 쪽으로 향합니다. 결론으로 들어가는 선만 금색이라, 어디로 닫혔는지 멀리서도 보입니다.</p>
+        <div class="fg"><svg viewBox="0 0 190 106" aria-hidden="true">
+          <rect x="8" y="6" width="56" height="24" rx="5" fill="#161919"/><text x="36" y="22" text-anchor="middle" font-size="9.5" fill="#fff">쟁점</text>
+          <path d="M36 34v10" stroke="#c3cede" stroke-width="2" fill="none"/><path d="M36 50l-4.5-8h9z" fill="#c3cede"/>
+          <rect x="8" y="52" width="56" height="24" rx="5" fill="#e5ebf7" stroke="#d2dcf0"/><text x="36" y="68" text-anchor="middle" font-size="9.5" fill="#365493">주장</text>
+          <path d="M68 64h44v12" stroke="#d99a2b" stroke-width="2" fill="none"/><path d="M112 82l-4.5-8h9z" fill="#d99a2b"/>
+          <rect x="84" y="84" width="58" height="22" rx="5" fill="#cfe8fb" stroke="#b7dbf6" opacity=".001"/>
+          <rect x="84" y="82" width="58" height="22" rx="5" fill="#cfe8fb" stroke="#b7dbf6"/><text x="113" y="97" text-anchor="middle" font-size="9.5" fill="#1e6a98">결론</text>
+          <text x="150" y="60" font-size="8" fill="#b8862a">결론으로</text><text x="150" y="70" font-size="8" fill="#b8862a">가는 선만</text><text x="150" y="80" font-size="8" fill="#b8862a">금색</text>
+        </svg></div></div>
+
+      <div class="dc"><div class="k">02 맞섬</div><h4>빨간 선 · 양쪽 화살표</h4>
+        <p>두 주장이 <b>서로를 겨누고 있을 때</b>만 씁니다. 양쪽에 화살표가 달려 있으면 어느 쪽도 이기지 않았다는 뜻입니다. 같은 사람이 한 말끼리는 맞섬으로 잇지 않습니다 — 그건 생각이 바뀐 것이지 대립이 아니기 때문입니다.</p>
+        <div class="fg"><svg viewBox="0 0 190 92" aria-hidden="true">
+          <rect x="4" y="22" width="72" height="26" rx="5" fill="#e5ebf7" stroke="#d2dcf0"/><text x="40" y="39" text-anchor="middle" font-size="9.5" fill="#365493">주장 · 예나</text>
+          <rect x="114" y="22" width="72" height="26" rx="5" fill="#f7e3e1" stroke="#eecfcb"/><text x="150" y="39" text-anchor="middle" font-size="9.5" fill="#b3493c">반론 · 하린</text>
+          <path d="M88 35h14" stroke="#e0443e" stroke-width="2.4" fill="none"/>
+          <path d="M78 35l9-5v10z" fill="#e0443e"/><path d="M112 35l-9-5v10z" fill="#e0443e"/>
+          <text x="95" y="72" text-anchor="middle" font-size="8.5" fill="#6e7a8d">어느 쪽도 이기지 않은 채 남았다</text>
+        </svg></div></div>
+
+      <div class="dc"><div class="k">03 선 없음</div><h4>선 대신 자리로</h4>
+        <p>한 주장에 딸린 근거·조건·우려는 <b>선을 긋지 않습니다.</b> 카드 안의 설명으로 들어가고, 그래도 따로 보여야 할 말은 바로 아래 칸에 놓아 한 덩어리로 읽히게 합니다. 선 하나를 아끼면 맞선 지점이 그만큼 또렷해집니다.</p>
+        <div class="fg"><svg viewBox="0 0 190 106" aria-hidden="true">
+          <rect x="48" y="12" width="94" height="30" rx="7" fill="#e5ebf7" stroke="#d2dcf0"/><text x="95" y="31" text-anchor="middle" font-size="9.5" fill="#365493">주장</text>
+          <rect x="48" y="46" width="94" height="14" rx="4" fill="#eef1f8"/><text x="95" y="56" text-anchor="middle" font-size="8" fill="#7b8699">근거 · 조건 · 우려</text>
+          <rect x="40" y="5" width="110" height="62" rx="13" fill="none" stroke="#9fc0f2" stroke-width="1.6"/>
+          <text x="95" y="88" text-anchor="middle" font-size="8.5" fill="#6e7a8d">한 덩어리로 묶어</text>
+          <text x="95" y="100" text-anchor="middle" font-size="8.5" fill="#6e7a8d">테두리만 보여 줍니다</text>
+        </svg></div></div>
+    </div>
+    <div class="dc" style="margin-top:8px"><div class="k">경계</div><h4>다른 쟁점끼리는 잇지 않습니다</h4>
+      <p>선은 <b>같은 보드 안에서만</b> 그립니다. 다른 쟁점의 카드를 이으면 없던 인과가 있는 것처럼 읽히기 때문입니다. 회의 전체를 가로지르는 연결은 이 온톨로지 맵이 맡습니다 — 두 화면의 역할을 그렇게 나눠 두었습니다.</p></div>
+  </section>
+
+  <section class="dsec"><div class="lb">BRIDGE · 두 맵의 사이</div>
+    <h2>관계 맵의 카드는 여기서 어떤 점이 되나</h2>
+    <p class="sub">같은 회의에서 나온 두 구조라 종류끼리 그대로 맞물립니다. 다른 점은 하나입니다 — <b>관계 맵은 한 화면에 담으려고 합치고, 온톨로지는 어디서든 묻게 하려고 낱낱이 세웁니다.</b></p>
+    <div class="tbl cardmap">
+      <div><b>쟁점</b><em>issue</em><span>→ <code>Issue</code> · 그 논의에서 답해야 했던 물음</span></div>
+      <div><b>주장</b><em>position</em><span>→ <code>Proposal</code> / <code>Claim</code> · 이렇게 하자는 안, 근거를 가진 판단</span></div>
+      <div><b>근거</b><em>pro</em><span>→ <code>Evidence</code> + <code>SUPPORTS</code> · 카드 안 설명이던 것이 여기선 독립된 점이 됩니다</span></div>
+      <div><b>반론</b><em>con</em><span>→ <code>OPPOSES</code> / <code>CHALLENGES</code> · 카드이던 것이 여기선 선의 종류가 됩니다</span></div>
+      <div><b>우려</b><em>concern</em><span>→ <code>Concern</code></span></div>
+      <div><b>조건</b><em>condition</em><span>→ <code>Condition</code> + <code>REQUIRES</code></span></div>
+      <div><b>결론</b><em>resolution</em><span>→ <code>Decision</code> / <code>Conditional</code> / <code>Open</code> + <code>ADOPTED_AS</code> · <code>RESOLVES</code></span></div>
+      <div><b>할 일</b><em>todos</em><span>→ <code>Action</code> + <code>CREATES</code> · <code>ASSIGNED_TO</code></span></div>
+      <div><b>근거 구절</b><em>ev</em><span>→ 점에 붙는 <b>원문 속성</b> · 두 화면이 함께 쓰는 출처</span></div>
+    </div>
+    <p class="sub" style="margin-top:12px">관계 맵은 한 화면에서 읽히는 카드 수를 상한으로 두기 때문에 근거·조건·우려를 주장 안에 넣습니다. 온톨로지는 어떤 질문이든 받아야 해서 합치지 않고 모두 점으로 세웁니다.</p>
+  </section>
+
+  <section class="dsec"><div class="lb">GRAPH MODEL · 실제 데이터 구조</div><h2>점은 발언만을 뜻하지 않습니다</h2><p class="sub">피그마의 ‘노드 = 대상, 관계 = 서술어’ 원칙을 현재 데이터에 대입한 구조입니다. 원문은 출처이고, 그 안에서 구분한 의미와 참여자·파트·일정이 노드가 됩니다.</p>
+    <div class="dgrid">
+      <div class="dc"><div class="k">논의 · ${NODES.filter(n=>['Issue','Evidence','Concern','Question','Claim','Proposal','Condition'].includes(n.type)).length}개</div><h4>근거·제안·우려처럼 연결 가능한 의미</h4><p>하나의 발언에서 여러 의미를 분리할 수 있습니다. ‘사건’이라는 일반 유형은 없으며, 실제 관찰은 근거로, 이후 행동은 업무로 구분합니다. 주제는 현재 별도 노드가 아닌 묶음 속성입니다.</p></div>
+      <div class="dc"><div class="k">사람과 맥락 · ${NODES.filter(n=>CTX.has(n.type)).length}개</div><h4>참여자 4 · 파트 3 · 일정 3</h4><p>참여자는 발언과 업무가 연결되는 독립 대상입니다. 파트는 소속과 담당 범위를, 일정은 후속 회의·발표·자문을 나타냅니다. 직책과 파트는 다른 정보입니다.</p><button class="inspect-graph" data-inspect="Participant">맵에서 참여자 보기 →</button></div>
+      <div class="dc"><div class="k">결과 · ${NODES.filter(n=>['Decision','Conditional','Open','Action'].includes(n.type)).length}개</div><h4>결정·조건부·미결·업무</h4><p>합의 상태와 실행할 일을 분리합니다. 같은 결정에 근거·조건·남은 쟁점·담당 업무를 각각 연결하므로 결과만 읽을 때 사라지는 맥락을 되짚을 수 있습니다.</p><button class="inspect-graph" data-inspect="Action">맵에서 업무와 담당 보기 →</button></div>
+    </div>
+    <div class="dc graph-example"><div class="k">이 회의의 실제 연결 · 클릭하면 맵에서 확인</div><div class="example-nodes">${['t1.e3','t1.p1','t1.d','p.Lina','team.UX'].map(id=>`<button data-inspect-node="${id}"><span>${KO[BY[id].type]}</span>${esc(BY[id].label)}</button>`).join('')}</div><p>근거 — 뒷받침 → 제안 — 채택 → 결정<br>제안 — 발언자 → Lina — 소속 → UX<br>내용의 의미 관계와 사람 관계를 동시에 따라갈 수 있습니다. 뒷받침·소속 관계는 이 데이터에서 추론으로 표시됩니다.</p></div>
+  </section>
+
+  <section class="dsec"><div class="lb">MAP GUIDE</div><h2>맵의 점과 선은 이렇게 읽어요</h2>
+    <p class="sub">회의 정보를 종류별로 나누고 서로의 관계를 연결한 구조를 ‘온톨로지’라고 불러요. 점은 정보, 선은 정보 사이의 연결이에요.</p>
+    <div class="dgrid">
+      <div class="dc"><div class="k">Node · 점</div><h4>하나의 발언, 결정, 할 일</h4><p>근거·제안·결정·업무 등을 하나씩 담아요. 노드를 누르면 왼쪽에서 내용과 연결된 정보를 읽을 수 있어요.</p></div>
+      <div class="dc"><div class="k">Edge · 선</div><h4>서로 어떤 영향을 주었는지</h4><p>“이 근거가 제안을 뒷받침했다”, “이 결정에서 할 일이 생겼다” 같은 관계예요. 단순히 함께 언급됐다고 연결하지는 않아요.</p></div>
+      <div class="dc"><div class="k">Color · 색</div><h4>정보의 종류를 구분해요</h4><p><span class="dot" style="background:#5f8dff"></span>근거·논의<br><span class="dot" style="background:#9a7bff"></span>우려·조건<br><span class="dot" style="background:#c9ccf0"></span>결론<br><span class="dot" style="background:#62e0ef"></span>업무</p></div>
+      <div class="dc"><div class="k">Line · 선 모양</div><h4>직접 드러난 연결과 추론한 연결</h4><p>실선은 발언에서 확인된 관계, 점선은 맥락을 바탕으로 추론한 관계예요. 추론된 연결은 직접 확인된 사실과 구분해서 읽어주세요.</p></div>
+    </div>
+  </section>
+
+  <section class="dsec"><div class="lb">POSITION</div><h2>점이 놓인 자리에도 의미가 있어요</h2>
+    <p class="sub">시간, 정보의 역할, 연결 범위를 세 축으로 펼쳤어요. 맵을 회전하면 서로 다른 관점에서 구조를 볼 수 있어요.</p>
+    <div class="axis"><div class="fig">${axesSVG()}</div><div class="rows">
+      <div class="dc ax"><b style="background:#6d86d6">X</b><div><h4>언제 나온 이야기인가요?</h4><p>논의 노드의 근거 발언 시각을 X 좌표로 변환합니다. 맵을 회전하면 화면에서 보이는 방향은 달라져도 X축의 시간 의미는 유지됩니다.</p></div></div>
+      <div class="dc ax"><b style="background:#8f78e6">Y</b><div><h4>논의에서 어떤 역할을 하나요?</h4><p>아래에는 근거와 질문, 그 위에는 쟁점과 제안, 위쪽에는 결론과 업무가 놓여요. Y 좌표는 정보의 역할을 나타내며 중요도 순위가 아닙니다. 참여자·파트·일정은 이 순서에서 제외하고 별도 맥락 영역에 놓습니다.</p></div></div>
+      <div class="dc ax"><b style="background:#2fb5c6">Z</b><div><h4>얼마나 넓게 연결되어 있나요?</h4><p>논의 노드의 이웃 수 + 1.6 × (연결된 파트 수 − 1) + 0.8 × 이웃 발언자 수를 계산하고, 그 순위를 Z 좌표로 변환합니다. 화면의 앞뒤나 중요도를 고정적으로 뜻하지 않습니다.</p></div></div>
+    </div>
+  </section>
+
+  <section class="dsec"><div class="lb">READ WITH CONTEXT</div><h2>답변을 더 정확하게 읽는 방법</h2><div class="dgrid">
+    <div class="dc"><h4>근거 발언을 함께 읽어보세요</h4><p>현재 ${withQuote}개 노드에 원문이 연결되어 있어요. 모든 노드에 인용이 있는 것은 아니므로, 답변 아래에 표시된 발언과 시각을 함께 확인해보세요.</p></div>
+    <div class="dc"><h4>추론은 확정된 사실과 구분해요</h4><p>현재 관계 ${EDGES.length}개 중 ${exp}개는 원문에서 확인한 연결(발언자 연결 ${byType.SAID_BY || 0}개 포함)이고, ${EDGES.length-exp}개는 추론된 연결이에요. 관계 경로를 펼치면 이 구분을 확인할 수 있어요.</p></div>
+    <div class="dc"><h4>회의에서 찾지 못할 수도 있어요</h4><p>관련 내용을 찾지 못하면 그 사실을 안내해요. AI 연결에 실패하면 규칙 기반 탐색으로 대신하며, 이 경우 답변에 안내 문구가 표시돼요.</p></div>
+  </div></section>
+
+  <details class="reference"><summary>더 자세히 보기 · 정보 유형과 관계 목록</summary>
+    <section class="dsec"><h2>어떤 정보가 담겨 있나요?</h2><p class="sub">지금 맵에 담긴 정보의 종류와 개수예요. 영문 이름은 관계 경로에 표시되는 이름과 같아요.</p>
+      <div class="dgrid">${GROUPS_N.map(([en,ko,ts])=>`<div class="dc"><div class="k">${ko}</div>${ts.map(t=>`<p><span class="dot" style="background:${COLOR[t]}"></span><b>${KO[t]}</b> · ${cnt(t)}<br>${TYPE_DESC[t]}<br><code>${t}</code></p>`).join('')}</div>`).join('')}</div>
+    </section>
+    <section class="dsec"><h2>어떤 관계로 연결되나요?</h2><p class="sub">각 관계의 의미와 개수예요. KEY는 결론으로 이어지는 핵심 관계로, 맵에서 조금 더 밝게 표시해요.</p><div class="tbl">${edgeRows}</div></section>
+  </details>
+  <p class="end-note">핵심은 원문 → 노드 → 관계 → 탐색 경로로 이어지는 출처의 연결입니다. 같은 맵을 결정의 이유, 담당 업무, 남은 쟁점 등 서로 다른 질문에 활용합니다.</p>
+
+</div>`;
+  $('#dclose').onclick = closeDesign;
+  $('#design').querySelectorAll('[data-inspect]').forEach(b=>b.onclick=()=>{closeDesign();const n=NODES.find(n=>n.type===b.dataset.inspect);if(n)focusNode(n);});
+  $('#design').querySelectorAll('[data-inspect-node]').forEach(b=>b.onclick=()=>{closeDesign();focusNode(BY[b.dataset.inspectNode]);});
+}
+function openDesign() {
+  renderDesign(); $('#design').hidden = false; $('#design').scrollTop = 0;
+  if (location.hash !== '#design') history.pushState(null, '', '#design');
+  $('#dclose').focus();
+}
+function closeDesign() {
+  if ($('#design').hidden) return;
+  $('#design').hidden = true;
+  if (location.hash === '#design') history.back();
+  $('#dopen').focus();
+}
+$('#dopen').onclick = openDesign;
+/* UI 숨기기 — 3D 와 질문창만 남는다. 캔버스는 넓어진 만큼 다시 잡아 준다 */
+function bare(on) {
+  document.body.classList.toggle('bare', on);
+  requestAnimationFrame(resize);
+  setTimeout(resize, 260);
+}
+$('#dopen2').onclick = openDesign;
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#design').hidden) return closeDesign();
+  if ((e.key === 'h' || e.key === 'H' || e.key === 'ㅗ') && !/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '')
+      && $('#design').hidden) bare(!document.body.classList.contains('bare'));
+});
+addEventListener('popstate', () => { if (location.hash !== '#design') $('#design').hidden = true; else if ($('#design').hidden) openDesign(); });
+if (location.hash === '#design') setTimeout(openDesign, 0);
+
+bare(true);        /* 들어오면 3D 와 질문창만 — 왼쪽 UI 는 버튼이나 H 로 연다 */
+resize();
+requestAnimationFrame(frame);
+{ const q0 = new URLSearchParams(location.search).get('q');   /* ?q=질문 — 그 질문으로 바로 탐색 */
+  if (q0) setTimeout(() => { $('#askq').value = q0; ask(q0); }, INTRO.skip ? 300 : PT_AT + PT_SPAN + PT_DUR); }   /* 점이 다 뜬 뒤 */
+</script>
+</body>
+</html>
