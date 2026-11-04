@@ -740,7 +740,9 @@ function track(n, p, r, k, on, al, now) {
 
 function frame() {
   requestAnimationFrame(frame);
-  if (document.hidden) return;        /* 가려진 탭은 그리지 않는다 — 노트북 팬이 돈다 */
+  /* 안 보이는 동안은 그리지 않는다 — 가려진 탭, 그리고 설계 보기가 맵을 덮고 있을 때.
+     3D 를 계속 돌리면 노트북 팬이 돈다 */
+  if (document.hidden || !$('#design').hidden) return;
   const now = performance.now();   /* 파동·입자 시작 시각과 같은 시계를 쓴다 (rAF 시각은 조금 이를 수 있다) */
   const kCam = K(260), kDim = K(220), kGlow = K(170), kSway = K(800), kView = K(190), kLbl = K(130);
   const dt = Math.min(120, now - lastT);
