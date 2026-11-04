@@ -135,7 +135,7 @@ canvas.drag{cursor:grabbing}
 .legend .ln.d{border-top-style:dashed;border-color:rgba(255,255,255,.6)}
 /* 맵을 읽는 도구 — 축 투어 · 보기 전환. 설계 보기에 들어가지 않아도 맵만으로 이해되게 둔다 */
 .axes{top:56px;left:16px;width:208px;padding:4px;border-radius:14px;pointer-events:auto;
-  background:rgba(255,255,255,.28);backdrop-filter:blur(8px);color:#2b4a7a}
+  background:rgba(255,255,255,.44);backdrop-filter:blur(10px);color:#27456f}
 .axes b{color:#12264a}
 .axes button{display:block;width:100%;text-align:left;padding:4px 9px 5px;border-radius:10px;
   background:transparent;color:inherit;font:inherit;letter-spacing:inherit;cursor:pointer;transition:background .18s,color .18s}
@@ -169,7 +169,7 @@ canvas.drag{cursor:grabbing}
 .field input::placeholder{color:rgba(19,49,95,.45)}
 .field button{height:32px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.85);color:#13315f;font-size:12px;font-weight:750}
 .field button:hover{background:#fff}
-.hint{position:absolute;left:18px;bottom:22px;font:500 10px var(--mono);color:rgba(255,255,255,.6);pointer-events:none}
+.hint{position:absolute;left:18px;bottom:22px;font:500 10px var(--mono);color:rgba(22,48,92,.52);pointer-events:none}
 
 /* ── UI 숨기기 — 3D 와 질문창만 남긴다 (버튼 또는 H) ───────────────────── */
 .bare-btn{position:absolute;right:16px;bottom:22px;display:flex;align-items:center;gap:7px;height:30px;padding:0 12px;
@@ -229,6 +229,19 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 .ladder em{font:600 10px var(--mono);font-style:normal;color:var(--faint);text-align:right}
 .ladder b{font-weight:700;color:var(--ink)}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;box-shadow:inset 0 0 0 1px rgba(30,35,44,.18)}
+.ab{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ab>div{display:grid;grid-template-columns:124px minmax(0,1fr) minmax(0,1fr);gap:18px;padding:13px 16px;align-items:start}
+.ab>div+div{border-top:1px solid var(--line2)}
+.ab .hd{background:#f4f6fb;font:650 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding-block:9px}
+.ab .hd u{text-decoration:none;color:var(--ink2)}
+.ab .hd u.t{color:var(--blue)}
+.ab>div>span{font:600 11px var(--mono);letter-spacing:-.01em;color:var(--dim);padding-top:1px}
+.ab p{font-size:12.5px;line-height:1.75;color:var(--dim)}
+.ab p.t{color:var(--ink2)}
+.ab p.t b{color:var(--blue);font-weight:600}
+.ab code{font:650 10.5px var(--mono);letter-spacing:-.02em;color:var(--blue)}
+.design .ab p{font-size:13px;line-height:1.8}
+@media(max-width:760px){.ab>div{grid-template-columns:1fr;gap:7px}.ab .hd{display:none}}
 .tbl{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .tr{display:grid;grid-template-columns:150px 52px minmax(0,1fr) 110px;gap:10px;padding:8px 13px;border-top:1px solid var(--line2);align-items:center;font-size:12px}
 .tr:first-child{border-top:0}
@@ -536,6 +549,18 @@ function resize() {
 }
 addEventListener('resize', resize);
 
+/* 표지 이미지의 입자감 — 타일 한 장을 미리 만들어 매 프레임 한 번만 깐다 */
+const GRAIN = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 160;
+  const g = c.getContext('2d'), d = g.createImageData(160, 160);
+  for (let i = 0; i < d.data.length; i += 4) {
+    d.data[i] = d.data[i + 1] = d.data[i + 2] = (Math.random() * 255) | 0;
+    d.data[i + 3] = 15;
+  }
+  g.putImageData(d, 0, 0);
+  return ctx.createPattern(c, 'repeat');
+})();
+
 /* 빛 점 스프라이트 — 색마다 한 번만 그려 둔다 */
 const SPR = {};
 function sprite(col) {
@@ -582,6 +607,7 @@ function project(x, y, z) {
 }
 
 let dim = 0, dimTo = 0, viewDim = 0, viewDimTo = 0, hover = null;
+let tourK = 0, tourKTo = 0;   /* 투어로 들어갈수록 가운데 로고를 지운다 — 가까이서는 화면을 다 덮는다 */
 
 /* 맵 자체를 읽는 세 가지 보기. '선만' 은 평소 숨겨 둔 논의·결과 관계선을 전부 옅게 깐다
    (발언자 선 281개는 뺀다 — 깔면 덩어리가 되어 아무것도 안 보인다) */
@@ -736,20 +762,25 @@ function frame() {
     cam.pitch = ease(cam.pitch, home.pitch + Math.sin(now * 0.00008) * 0.045, kSway);
   }
   dim = ease(dim, dimTo, kDim); viewDim = ease(viewDim, viewDimTo, kView);
+  tourK = ease(tourK, tourKTo, kDim);
   NODES.forEach(n => { n.glow = ease(n.glow, n.glowTo || 0, kGlow); });
   EDGES.forEach(e => { e.lit = ease(e.lit, e.litTo || 0, kGlow); });
 
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.globalCompositeOperation = 'source-over';
   /* 바탕 — 가운데가 밝은 타원 그라디언트 (피그마 708:5355) */
-  const rx = CW * .70;
-  ctx.save();
-  ctx.translate(CW / 2, CY); ctx.scale(1, (CH * .62) / (CW * .70));   /* 밝은 한가운데가 로고 자리와 맞도록 */
-  const bg = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-  bg.addColorStop(0, '#8DD3FF'); bg.addColorStop(.45, '#A3DAFF');
-  bg.addColorStop(.72, '#B2DFFF'); bg.addColorStop(1, '#D9ECFF');
-  ctx.fillStyle = bg; ctx.fillRect(-CW, -CW * 4, CW * 2, CW * 8);
+  const lg = ctx.createLinearGradient(0, 0, CW, CH);
+  lg.addColorStop(0, '#3D7ADD'); lg.addColorStop(.26, '#5287E1'); lg.addColorStop(.52, '#7AA6EA');
+  lg.addColorStop(.76, '#A7D3F6'); lg.addColorStop(.90, '#C9EEF8'); lg.addColorStop(1, '#DCEFF9');
+  ctx.fillStyle = lg; ctx.fillRect(0, 0, CW, CH);
+  ctx.save();                                                        /* 로고 자리에 옅은 빛 한 겹 */
+  ctx.translate(CW / 2, CY); ctx.scale(1, (CH * .62) / (CW * .70));
+  const gl = ctx.createRadialGradient(0, 0, 0, 0, 0, CW * .70);
+  gl.addColorStop(0, 'rgba(228,246,255,.36)'); gl.addColorStop(.52, 'rgba(228,246,255,.11)');
+  gl.addColorStop(1, 'rgba(228,246,255,0)');
+  ctx.fillStyle = gl; ctx.fillRect(-CW, -CW * 4, CW * 2, CW * 8);
   ctx.restore();
+  ctx.fillStyle = GRAIN; ctx.fillRect(0, 0, CW, CH);                 /* 표지와 같은 입자감 */
   ctx.globalCompositeOperation = 'source-over';
 
   const tIntro = since(now), dustK = clamp01(tIntro / 1200);
@@ -856,7 +887,7 @@ function frame() {
   NODES.forEach(n => { n.lbl = ease(n.lbl || 0, quiet && near5.has(n) ? 1 : 0, kLbl); });
   const placed = [];
   const lgP = project(HC.x, HC.y, HC.z);
-  const lgA = lgP ? Math.min(1, fog(lgP)) * (1 - dim * .75) * clamp01((tIntro - 700) / 1100) : 0;
+  const lgA = lgP ? Math.min(1, fog(lgP)) * (1 - dim * .75) * (1 - tourK) * clamp01((tIntro - 700) / 1100) : 0;
   let lgLeft = !!lgP;
   for (const n of order) {
     if (lgLeft && n.p.zc < lgP.zc) { drawLogo(lgP, lgA); lgLeft = false; }
@@ -956,15 +987,23 @@ const LV = ['근거 · 우려 · 질문', '쟁점', '주장 · 제안 · 조건'
 /* 훑는 구간은 논의 노드가 실제로 놓인 범위로만 잡는다 — 참여자·파트는 맨 위에 따로 떠 있어서
    BOX 를 그대로 쓰면 투어 끝이 텅 빈 구간이 된다 */
 const ext = k => { const v = BOX.body.map(n => n[k]); return [Math.min(...v), Math.max(...v)]; };
+/* 축마다 보는 자리를 다르게 둔다 — 같은 각도에서 움직이면 카메라가 움직인 줄 모른다.
+   yaw 0 은 X 가 화면 가로로 눕는 정면, yaw -1.35 는 시간축을 옆에서 보는 측면이다. */
 const TOUR_DEF = {
-  x: { k: 'x', a: () => ext('x')[0] - 40, b: () => ext('x')[1] + 40, dur: 11000, win: 170,
-       name: 'X · 회의 시간', tip: '왼쪽이 회의 시작, 오른쪽이 끝',
+  x: { k: 'x', a: () => ext('x')[0] - 60, b: () => ext('x')[1] + 60, dur: 17000, win: 190,
+       yaw: 0, pitch: -.04, dist: 480, sway: .30, swayP: .10,
+       name: 'X · 회의 시간 · 정면', tip: '시간축을 정면에서 — 왼쪽이 회의 시작, 오른쪽이 끝',
        read: v => `${Math.round(Math.max(0, ((v + W / 2) / W) * DUR) / 60)}분 지점` },
-  y: { k: 'y', a: () => ext('y')[0] - 30, b: () => ext('y')[1] + 30, dur: 10000, win: 105,
-       name: 'Y · 정보 역할', tip: '아래에서 위로 — 근거에서 결론 · 업무까지',
+  /* Y 는 옆에서 본다 — 시간축이 통째로 깊이가 되므로 너무 붙으면 절반이 카메라 뒤로 간다.
+     그래서 X·Z 보다 조금 물러선 거리에 둔다 */
+  y: { k: 'y', a: () => ext('y')[0] - 40, b: () => ext('y')[1] + 40, dur: 15000, win: 145,
+       yaw: -1.35, pitch: .03, dist: 760, sway: .42, swayP: .07,
+       name: 'Y · 정보 역할 · 측면', tip: '옆에서 올려다보며 — 근거에서 결론 · 업무까지',
        read: v => LV[Math.max(0, Math.min(4, Math.round(v / 175 + 2.2)))] },
-  z: { k: 'z', a: () => ext('z')[1] + 40, b: () => ext('z')[0] - 40, dur: 9000, win: 180,
-       name: 'Z · 관계 밀도', tip: '뒤에서 앞으로 — 많이 엮인 것일수록 앞에 놓여요', read: () => '' },
+  z: { k: 'z', a: () => ext('z')[1] + 90, b: () => ext('z')[0] - 90, dur: 12000, win: 200,
+       yaw: .42, pitch: -.92, dist: 560, sway: .55, swayP: .12,
+       name: 'Z · 관계 밀도 · 위에서', tip: '위에서 내려다보며 뒤에서 앞으로 — 많이 엮인 것일수록 앞',
+       read: () => '' },
 };
 let TOUR = null;
 function startTour(ax) {
@@ -974,13 +1013,13 @@ function startTour(ax) {
   cancelQuery(); resetLights(); clearFocus();
   const d = TOUR_DEF[ax];
   TOUR = { ax, d, t0: performance.now(), a: d.a(), b: d.b() };
-  camTo = null; ORBIT = null; dimTo = .5;
+  camTo = null; ORBIT = null; dimTo = .5; tourKTo = 1;
   document.querySelectorAll('.axes button').forEach(b => b.classList.toggle('on', b.dataset.tour === ax));
   $('#tourcap').classList.add('on');
 }
 function stopTour() {
   if (!TOUR) return;
-  TOUR = null; dimTo = 0;
+  TOUR = null; dimTo = 0; tourKTo = 0;
   NODES.forEach(n => { n.glowTo = 0; });
   document.querySelectorAll('.axes button').forEach(b => b.classList.remove('on'));
   $('#tourcap').classList.remove('on');
@@ -990,11 +1029,16 @@ function tourStep(now, dt, kCam) {
   const d = TOUR.d, k = (now - TOUR.t0) / d.dur;
   if (k >= 1) return stopTour();
   const v = TOUR.a + (TOUR.b - TOUR.a) * k;
+  /* 시점을 바꿔 가는 속도는 따로 둔다 — 빠르면 '튄 것'이 되고, 느려야 '움직인 것'이 된다 */
+  const kSlow = 1 - Math.exp(-dt / 950), kZoom = 1 - Math.exp(-dt / 1300);
   cam.tx = ease(cam.tx, d.k === 'x' ? v : HC.x, kCam);
   cam.ty = ease(cam.ty, d.k === 'y' ? v : HC.y, kCam);
   cam.tz = ease(cam.tz, d.k === 'z' ? v : HC.z, kCam);
-  cam.dist = ease(cam.dist, 660, kCam * .6);
-  cam.yaw += 0.00004 * dt; home.yaw = cam.yaw;        /* 아주 조금씩 돌려 입체가 읽히게 */
+  cam.dist = ease(cam.dist, d.dist, kZoom);           /* 확 당긴다 — 점이 얼굴만 하게 지나간다 */
+  /* 지나가는 동안 시점이 한 번 크게 휘어 돈다 (sin 이라 시작·끝은 제자리) */
+  cam.yaw = ease(cam.yaw, d.yaw + Math.sin(Math.PI * k) * d.sway, kSlow);
+  cam.pitch = ease(cam.pitch, d.pitch + Math.sin(Math.PI * k) * d.swayP, kSlow);
+  home.yaw = cam.yaw;
   let lit = 0;
   for (const n of NODES) {
     if (n.x == null || CTX.has(n.type)) continue;
@@ -1537,6 +1581,38 @@ function renderDesign() {
       ],'무엇 · 왜 · 누구까지 연결된 답변','그래프 조회 · 근거 확인']
     ].map(([title,cards,result,method],i)=>`<li><div class="step-head"><span class="step-number" aria-label="${i+1}단계">${i+1}</span><h3>${title}</h3></div>${cards.map(([heading,desc,ex1,ex2])=>`<div class="logic-card"><h4>${heading}</h4><p>${desc}</p><div class="logic-example">${ex1}</div><div class="logic-example">${ex2}</div></div>`).join('')}<div class="output-arrow" aria-hidden="true">↓</div><div class="logic-result">${result}</div><div class="step-engine">${method}</div></li>`).join('')}</ol>
     <details class="implementation-note"><summary>설계 원칙과 현재 구현의 범위</summary><p>현재 노드와 의미 관계는 원문을 검토해 사전 정의하며 빌드 시 출처를 대조합니다. 질문 시 AI가 이 그래프를 읽습니다. 분류 기준은 자동 분류기가 이미 구현되었다는 의미가 아닙니다. 참여자의 소속은 기존 데이터의 추론 상태를 유지하고, 직책·회의 역할은 확인되지 않아 채우지 않았습니다. 현재 저장 방식은 graph.js이며 별도의 그래프 DB 엔진은 사용하지 않습니다. 노드·방향 있는 관계·속성을 갖춘 그래프 데이터 모델을 시각화한 프로토타입입니다.</p></details>
+  </section>
+
+  <section class="dsec"><div class="lb">AS IS · TO BE · 무엇이 달라지나</div>
+    <h2>요약은 결론을 남기고, 그래프는 과정을 남깁니다</h2>
+    <p class="sub">기존 AI 회의록 서비스도 ‘무엇을 정했는가’는 잘 뽑습니다. 다만 요약은 한 번 접고 나면 펼 수 없는 압축이라,
+      가장 먼저 잘리는 것이 반대 의견 · 달아 둔 조건 · 아직 닫히지 않은 쟁점입니다. 이 맵은 접지 않고 세워 둡니다.</p>
+    <div class="ab">
+      <div class="hd"><span></span><u>AS IS · 요약문으로 남길 때</u><u class="t">TO BE · 관계 그래프로 세울 때</u></div>
+      <div><span>남는 것</span>
+        <p>결론 몇 줄. 왜 그렇게 됐는지는 압축 과정에서 사라집니다. 반대했던 사람, 달아 둔 조건, 바뀐 안은 보통 한 줄로 뭉개지거나 빠집니다.</p>
+        <p class="t">근거 · 쟁점 · 주장 · 조건 · 결론 · 업무가 <b>각각 하나의 점</b>이고, 무엇이 무엇을 바꿨는지가 선으로 남습니다. 이 회의에서 점 ${NODES.length}개, 관계 ${EDGES.length}개입니다.</p></div>
+      <div><span>물을 수 있는 것</span>
+        <p>“무엇을 정했어?”까지. 단어가 겹치는 문단을 찾아 줄 뿐이라 <b>“왜 그렇게 정했어?”</b>처럼 관계를 묻는 질문에는 본문을 다시 읽어야 답이 나옵니다.</p>
+        <p class="t">“왜 · 누가 맡나 · 무엇이 막혔나”가 모두 <b>같은 그래프 위의 경로 조회</b>입니다. 질문이 바뀌어도 요약을 다시 만들지 않고 지나가는 길만 달라집니다.</p></div>
+      <div><span>출처</span>
+        <p>요약 문장이 어느 발언에서 나왔는지 되짚기 어렵습니다. 맞는지 아닌지는 결국 읽는 사람이 녹취를 다시 듣고 판단하게 됩니다.</p>
+        <p class="t">점마다 <b>말한 사람 · 시각 · 원 발화</b>가 달려 있습니다. 답을 의심하면 그 자리를 눌러 바로 그 문장으로 갑니다. 원 발화가 붙은 점이 ${NODES.filter(n=>n.quote).length}개입니다.</p></div>
+      <div><span>지어낸 것의 표시</span>
+        <p>요약문은 모델이 메운 부분과 실제로 나온 말이 같은 문체로 섞여 나옵니다. 어디까지가 회의였는지 구분할 방법이 없습니다.</p>
+        <p class="t">관계마다 <code>explicit</code> · <code>inferred</code> 와 신뢰도를 답니다. 추론으로 이은 선은 점선으로 그리고, 답변에서도 “~로 보여요”로 낮춰 말합니다. 지금 ${EDGES.filter(e=>e.explicitness==='explicit').length} / ${EDGES.length}이 명시입니다.</p></div>
+      <div><span>보는 각도</span>
+        <p>“할 일만”, “UX 파트만”처럼 보는 각도가 달라질 때마다 <b>새 요약</b>이 필요합니다. 각도마다 문장이 달라져 서로 어긋나기도 합니다.</p>
+        <p class="t">한 벌의 그래프에서 담당별 · 파트별 · 상태별 보기가 모두 나옵니다. 각도를 바꿔도 <b>근거는 같은 자리</b>를 가리킵니다.</p></div>
+      <div><span>회의가 쌓이면</span>
+        <p>회의록이 한 건씩 따로 쌓입니다. 지난번 미결이 이번에 어떻게 됐는지는 사람이 기억해서 이어 줘야 합니다.</p>
+        <p class="t">미결은 <code>REMAINS_UNRESOLVED</code> 로 다음 회의에 물리고, 같은 사람 · 파트 · 주제가 회의를 가로질러 이어집니다. 회의가 쌓일수록 그래프가 두꺼워집니다.</p></div>
+      <div><span>읽는 방식</span>
+        <p>위에서 아래로 읽는 글입니다. 어디가 중요한지는 요약을 쓴 쪽이 정합니다.</p>
+        <p class="t">좌표에 뜻이 있습니다 — X 는 회의 시간, Y 는 정보의 역할, Z 는 관계 밀도. 축을 눌러 훑어보면 <b>어디에 무엇이 몰려 있는지</b>가 먼저 보입니다.</p></div>
+    </div>
+    <p class="sub" style="margin-top:12px">요약을 대신하려는 것이 아닙니다. 요약은 그래프에서 언제든 다시 뽑을 수 있지만,
+      <b>요약에서 그래프를 되살릴 수는 없습니다.</b> 그래서 접기 전 단계를 남겨 두는 쪽을 택했습니다.</p>
   </section>
 
   <section class="dsec" aria-labelledby="ibis-title"><div class="lb">RELATION MAP · 관계 맵</div>
