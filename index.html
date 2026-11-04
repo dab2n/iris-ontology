@@ -184,17 +184,14 @@ canvas.drag{cursor:grabbing}
 .ptab i{font-style:normal;font-size:9px;opacity:.7}
 .ptab span{writing-mode:vertical-rl}
 body:not(.bare) .ptab{display:none}
-/* 전시 모드 자막 — 검색창 자리에, 영화 자막처럼 가운데로 */
-.cap{position:absolute;left:50%;bottom:24px;z-index:4;transform:translateX(-50%);width:min(1060px,calc(100% - 56px));
-  padding:22px 32px 24px;border-radius:10px;text-align:center;
-  background:rgba(255,255,255,.5);backdrop-filter:blur(14px);box-shadow:0 10px 34px rgba(14,46,96,.1)}
-.cap p{font-size:21px;line-height:1.5;font-weight:500;color:#10264c;letter-spacing:-.4px;word-break:keep-all;
-  animation:capin .55s cubic-bezier(.3,0,.2,1) both}
-@keyframes capin{from{opacity:0;transform:translateY(5px)}}
-.cap i{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(43,74,122,.12);overflow:hidden;border-radius:0 0 10px 10px}
-.cap i:after{content:"";display:block;height:100%;background:#4b87e9;transform-origin:left;
-  animation:capbar linear both;animation-duration:var(--sc,8s)}
-@keyframes capbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* 전시 모드 자막 — 영화 자막처럼. 상자는 문장 길이만큼만 */
+.cap{position:absolute;left:50%;bottom:38px;z-index:4;transform:translateX(-50%);
+  width:max-content;max-width:min(1040px,calc(100% - 72px));
+  padding:13px 26px 15px;border-radius:8px;text-align:center;
+  background:rgba(0,0,0,.36);backdrop-filter:blur(6px);transition:opacity .3s}
+.cap.off{opacity:0}
+.cap p{font-size:22px;line-height:1.45;font-weight:500;color:#fff;letter-spacing:-.3px;word-break:keep-all;
+  text-shadow:0 1px 12px rgba(0,0,0,.28)}
 body.demo .ask,body.demo .eg,body.demo .ptab,body.demo .hint{opacity:0;pointer-events:none;transition:opacity .4s}
 @media (prefers-reduced-motion:reduce){.cap p,.cap i:after{animation:none}}
 .field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
@@ -490,7 +487,7 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
     <form class="field" id="askf"><input id="askq" autocomplete="off" placeholder="이 회의에 대해 무엇이든 물어보세요"><button>탐색</button></form>
   </div>
   <div class="scan" id="scan"><i></i><span id="scantx"></span></div>
-  <div class="cap" id="cap" hidden><p id="capt"></p><i></i></div>
+  <div class="cap" id="cap" hidden><p id="capt"></p></div>
   <div class="viewbar" id="viewbar">
     <button type="button" data-view="all" class="on">모두</button>
     <button type="button" data-view="nodes">요소</button>
@@ -1552,7 +1549,7 @@ $('#popen').onclick = () => bare(false);
 /* ══ 전시 모드 — 아무도 만지지 않으면 맵이 스스로 설명한다 ══════════════
    자막은 검색창 자리에 서고, 맵은 그 말에 맞춰 한 장면씩 움직인다.
    질문 장면은 규칙 기반 탐색으로 돈다 — 전시 내내 도는 것이라 AI 서버를 부르지 않는다. */
-const IDLE_MS = 40000;
+const IDLE_MS = 300000;                                 /* 5분 동안 아무 조작이 없으면 처음부터 다시 돈다 */
 /* 전체가 한눈에 들어오는 자리. 참여자·파트는 맵 바깥에 멀찍이 떠 있어서 계산에 넣으면
    그 둘을 담느라 본체가 작아진다 — 논의 노드만 기준으로 잡는다 */
 function wideShot(k, pitch) {
@@ -1604,14 +1601,31 @@ const SHOW = [
   { ms: 7500, say: ['이제 여러분 차례입니다.', '화면을 직접 움직여 체험해 보세요!'],
     go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(.70); setTimeout(orbitOn, 900); } },
 ];
-let showT = 0;
+let showT = 0, capT = 0;
 const inDemo = () => document.body.classList.contains('demo');
+/* 한 장면의 문장들을 하나씩 연달아 띄운다. 머무는 시간은 글자 수에 비례하게 나눠
+   짧은 문장이 길게 걸려 있거나 긴 문장이 휙 지나가지 않게 한다. */
+const CAP_GAP = 420;
+function capPlay(lines, total) {
+  clearTimeout(capT);
+  const cap = $('#cap'), p = $('#capt');
+  const len = lines.map(s => Math.max(8, s.length)), sum = len.reduce((a, b) => a + b, 0);
+  const body = Math.max(1600, total - CAP_GAP * (lines.length - 1));
+  let i = 0;
+  const step = () => {
+    p.textContent = lines[i];
+    cap.classList.remove('off');
+    capT = setTimeout(() => {
+      if (++i >= lines.length) return;              /* 마지막 문장은 장면이 끝날 때까지 둔다 */
+      cap.classList.add('off');
+      capT = setTimeout(step, CAP_GAP);
+    }, body * len[i] / sum);
+  };
+  step();
+}
 function demoScene(i) {
-  const s = SHOW[i % SHOW.length], p = $('#capt'), bar = $('#cap').querySelector('i');
-  p.innerHTML = s.say.map(esc).join('<br>');       /* 문장마다 줄을 바꾼다 — 자막은 한 줄에 한 문장이 읽기 쉽다 */
-  p.style.animation = 'none'; void p.offsetWidth; p.style.animation = '';   /* 자막이 바뀔 때마다 다시 떠오르게 */
-  bar.style.setProperty('--sc', s.ms + 'ms');
-  bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
+  const s = SHOW[i % SHOW.length];
+  capPlay(s.say, s.ms);
   s.go();
   showT = setTimeout(() => demoScene(i + 1), s.ms);
 }
@@ -1623,7 +1637,7 @@ function demoOn() {
 }
 function demoOff() {
   if (!inDemo()) return;
-  clearTimeout(showT);
+  clearTimeout(showT); clearTimeout(capT); $('#cap').classList.remove('off');
   document.body.classList.remove('demo');
   $('#cap').hidden = true;
   stopTour(); cancelQuery(); clearFocus(); setView('all');
