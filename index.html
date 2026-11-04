@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>IRIS · Meeting Ontology (test)</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<title>IRIS · 회의 온톨로지</title>
 <style>
 :root{
   --bg:#eef1f5; --panel:#f6f8fb; --card:#fff; --line:#dfe4ec; --line2:#e9edf3;
@@ -14,23 +13,29 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:SFKR,-apple-system,"Apple SD Gothic Neo",Pretendard,system-ui,sans-serif;
+body{font-family:SFKR,-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;
   color:var(--ink);background:var(--bg);letter-spacing:-.02em;font-size:13px;-webkit-font-smoothing:antialiased;
   display:grid;grid-template-columns:392px minmax(0,1fr);overflow:hidden}
 button,input{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:none}
 button{cursor:pointer}
 [hidden]{display:none!important}
 
-/* ── 왼쪽: 사람이 읽는 정리 ───────────────────── */
-.side{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--line)}
-.top{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:baseline;gap:7px}
-.brand b{font-size:15px;font-weight:800;letter-spacing:.06em}
-.brand span{font-size:12px;color:var(--dim);font-weight:600}
-.brand i{margin-left:auto;font:600 9.5px var(--mono);letter-spacing:.08em;color:var(--violet);
-  border:1px solid #cfc6ee;border-radius:4px;padding:2px 5px;font-style:normal}
-.mt{margin-top:10px;font-size:14px;font-weight:750}
-.mm{margin-top:3px;font:500 10.5px var(--mono);color:var(--dim);letter-spacing:-.02em}
+/* ── 왼쪽: 사람이 읽는 답 ─────────────────────
+   색·글자·모서리는 IRIS 웹(meetnote docs/index.html)의 디자인 시스템을 그대로 쓴다.
+   토큰을 .side 안에만 다시 정의해 설계 보기 쪽은 건드리지 않는다. */
+.side{--bg:#fcfcfe;--card:#f2f5fa;--card2:#f5f6f8;--chip:#e4eaf2;--line:#dee0e6;--line2:#d7dff1;
+  --ink:#050a0a;--ink2:#3b3b3b;--navy:#2d3b48;--dim:#757575;--dim2:#a3a3a3;--dark:#222a2a;--blue:#4b87e9;
+  display:flex;flex-direction:column;min-height:0;background:#fcfcfe;border-right:1px solid #eef0f4;
+  font:400 14px/1.5 SFKR,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+  color:var(--ink);letter-spacing:-.01em;word-break:keep-all}
+.top{padding:20px 22px 18px}
+.brand{display:flex;align-items:center;gap:8px}
+.brand b{font-size:17px;font-weight:700;letter-spacing:.04em}
+.brand span{font-size:13px;color:var(--dim2);font-weight:500}
+#pclose{margin-left:auto;width:26px;height:26px;border-radius:99px;color:var(--dim2);font-size:11px;line-height:1}
+#pclose:hover{background:var(--card);color:var(--navy)}
+.mt{margin-top:14px;font-size:20px;font-weight:700;letter-spacing:-.4px;line-height:1.3}
+.mm{margin-top:5px;font-size:12px;color:var(--dim2);letter-spacing:-.1px;font-variant-numeric:tabular-nums}
 
 .tabs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 12px 0;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card)}
 .tabs em{font:650 9.5px var(--mono);font-style:normal;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;margin-right:4px}
@@ -38,48 +43,60 @@ button{cursor:pointer}
 .tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .tabs .sep{width:1px;background:var(--line);margin:3px 3px}
 
-.scroll{flex:1;overflow:auto;min-height:0}
+.scroll{flex:1;overflow:auto;min-height:0;padding:0 22px 40px;scrollbar-width:thin}
 
-/* 답 · 상세 */
-.box{margin:12px 12px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 13px}
-.box .bq{display:flex;gap:8px;align-items:flex-start}
-.box .bq b{flex:1;font-size:13px;font-weight:750;line-height:1.45}
-.box .x{color:var(--faint);font-size:14px;line-height:1}
-.steps{display:flex;gap:3px;margin-top:9px}
-.steps span{flex:1;height:3px;border-radius:2px;background:var(--line2);transition:background .3s}
-.steps span.on{background:#8aa0e6}
-.stepl{margin-top:5px;font:500 10px var(--mono);color:var(--dim);letter-spacing:-.02em}
-.ans{margin-top:10px;display:grid;gap:5px}
-.ans div{font-size:12.5px;line-height:1.55;color:var(--ink)}
-/* 답변 — 사람이 읽는 문장이 먼저 */
-.lead{margin-top:10px;font-size:13.5px;line-height:1.75;color:var(--ink);letter-spacing:-.02em}
-.lead p+p{margin-top:6px}
-.pts{margin-top:10px;display:grid;gap:8px;list-style:none}
-.pts li{font-size:13px;line-height:1.65;color:var(--ink);padding-left:12px;position:relative}
-.pts li::before{content:"";position:absolute;left:0;top:.72em;width:4px;height:4px;border-radius:50%;background:#8aa0e6}
-.pts li em{display:block;font:600 10px var(--mono);letter-spacing:.02em;color:var(--dim);font-style:normal;margin-bottom:1px}
-.more{margin-top:14px;border-top:1px solid var(--line2);padding-top:4px}
-.more summary{cursor:pointer;list-style:none;margin:8px 0 6px;font:650 9.5px var(--mono);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+/* 답 한 장 — 질문 / 답 / 짚은 것 / 원 발화 네 덩어리가 간격으로 갈린다 */
+.box{padding-top:4px}
+.box .bq{display:flex;gap:10px;align-items:flex-start;padding-bottom:16px;border-bottom:1px solid #eef0f4}
+.box .bq b{flex:1;font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.4}
+.box .x{flex:none;width:26px;height:26px;border-radius:99px;color:var(--dim2);font-size:13px;line-height:1}
+.box .x:hover{background:var(--card);color:var(--navy)}
+/* 찾는 중 — 단계를 쪼개 보여 주지 않는다. 가는 줄 하나와 한 마디면 된다 */
+.steps{height:2px;margin-top:16px;border-radius:2px;background:var(--line2);overflow:hidden}
+.steps:after{content:"";display:block;height:100%;width:38%;border-radius:2px;background:var(--blue);
+  animation:sweep 1.25s var(--ease,cubic-bezier(.3,0,.2,1)) infinite}
+@keyframes sweep{from{transform:translateX(-110%)}to{transform:translateX(320%)}}
+.stepl{margin-top:9px;font-size:12px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.ans{margin-top:18px;display:grid;gap:6px}
+.ans div{font-size:14px;line-height:1.65;color:var(--ink2)}
+/* 답 — 사람이 읽는 문장이 먼저, 가장 크게 */
+.lead{margin-top:20px;font-size:15px;line-height:1.75;color:var(--ink)}
+.lead p+p{margin-top:12px}
+/* 짚은 것 — 한 줄짜리 카드로 끊어 읽는 속도를 바꾼다 */
+.pts{margin-top:22px;display:grid;gap:8px;list-style:none}
+.pts li{padding:13px 16px;border-radius:16px;background:var(--card2);box-shadow:0 0 0 1px #eef0f4;
+  font-size:14px;line-height:1.6;color:var(--ink2)}
+.pts li em{display:block;margin-bottom:4px;font-size:11.5px;font-weight:600;font-style:normal;color:var(--navy);letter-spacing:-.1px}
+.more{margin-top:26px}
+.more summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;
+  font-size:13px;font-weight:600;color:var(--dim)}
+.more summary:hover{color:var(--navy)}
 .more summary::-webkit-details-marker{display:none}
-.more summary::before{content:"▸ ";color:var(--faint)}
-.more[open] summary::before{content:"▾ "}
-.hd{margin:12px 0 5px;font:650 9.5px var(--mono);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.more summary::before{content:"▸";font-size:10px;color:var(--dim2)}
+.more[open] summary::before{content:"▾"}
+.more>:not(summary){margin-top:12px}
+.hd{margin:22px 0 10px;font-size:13px;font-weight:600;color:var(--dim)}
 .path{display:grid;gap:2px}
-.path div{font-size:11.5px;line-height:1.45;color:var(--ink2);cursor:pointer;padding:2px 0}
-.path div:hover{color:var(--ink)}
-.path code{font:600 9.5px var(--mono);color:var(--blue);padding:0 3px;letter-spacing:-.02em}
-.path code.inf{color:var(--violet)}
-.src{display:grid;gap:6px}
-.q{padding:7px 9px;border-left:2px solid #b7c3e6;background:#f4f6fb;border-radius:0 5px 5px 0;cursor:pointer}
-.q:hover{background:#edf1fa}
-.q .qm{font:500 10px var(--mono);color:var(--dim);letter-spacing:-.02em;display:flex;gap:6px}
-.q .qm b{color:var(--ink2);font-weight:650}
-.q p{margin-top:2px;font-size:12px;line-height:1.5;color:var(--ink)}
-.q p mark{background:#dde5f8;color:inherit;border-radius:2px;padding:0 1px}
-.badge{font:600 9px var(--mono);letter-spacing:.04em;padding:1px 4px;border-radius:3px;border:1px solid var(--line);color:var(--dim)}
-.badge.exp{color:var(--blue);border-color:#c9d4f1}
-.badge.inf{color:var(--violet);border-color:#d8cff1}
-.empty{font-size:12px;color:var(--dim);line-height:1.6}
+.path div{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.5;color:var(--ink2);cursor:pointer}
+.path div:hover{background:var(--card)}
+.path code{font:600 11px var(--mono);color:var(--blue);padding:0 4px;letter-spacing:-.02em}
+.path code.inf{color:#8a6fd1}
+.src{display:grid;gap:8px}
+.q{padding:13px 16px;border-radius:16px;background:var(--card);cursor:pointer;transition:background .18s}
+.q:hover{background:var(--chip)}
+.q .qm{display:flex;align-items:baseline;gap:8px;font-size:13.5px;font-weight:600;color:var(--navy)}
+.q .qm span{font-size:12px;font-weight:400;color:var(--dim2);font-variant-numeric:tabular-nums}
+.q .qm b{font-weight:600}
+.q p{margin-top:5px;font-size:13.5px;line-height:1.6;color:var(--ink2)}
+.q p mark{background:#dcecff;color:inherit;border-radius:2px;padding:0 1px}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:99px;
+  background:var(--chip);color:var(--navy);font-size:11px;font-weight:600;letter-spacing:-.1px}
+.badge.exp{background:#e3edfd;color:#2f63b8}
+.badge.inf{background:#eee9fb;color:#6a55c8}
+.person-meta{margin-top:14px;padding:13px 16px;border-radius:16px;background:var(--card2);
+  box-shadow:0 0 0 1px #eef0f4;font-size:13.5px;line-height:1.7;color:var(--ink2)}
+.person-meta small{color:var(--dim2)}
+.empty{margin-top:2px;font-size:13.5px;color:var(--dim2);line-height:1.75}
 
 /* 결정 · 조건부 · 미결 · 업무 */
 .segs{display:flex;gap:0;margin:14px 12px 0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
@@ -100,20 +117,14 @@ button{cursor:pointer}
 .chip{font-size:10.5px;font-weight:650;padding:1px 6px;border-radius:3px;background:#eef1f6;color:var(--ink2)}
 .k.Decision{color:#3d4a66}.k.Conditional{color:var(--violet)}.k.Open{color:#8a7bb8}.k.Action{color:var(--cyan)}
 
-.steps span{position:relative;overflow:hidden}
-.steps span.now{background:#d4ddf2}
-.steps span.now:after{content:"";position:absolute;inset:0;border-radius:2px;
-  background:linear-gradient(90deg,transparent,#8aa0e6,transparent);animation:sweep 1.1s linear infinite}
-@keyframes sweep{from{transform:translateX(-110%)}to{transform:translateX(110%)}}
-.stepl{font-variant-numeric:tabular-nums}
-.skel{margin-top:14px;display:grid;gap:9px}
-.skel i{display:block;height:10px;border-radius:5px;
-  background:linear-gradient(90deg,#e9edf3 25%,#f7f9fc 37%,#e9edf3 63%);background-size:400% 100%;
+.skel{margin-top:20px;display:grid;gap:11px}
+.skel i{display:block;height:13px;border-radius:7px;
+  background:linear-gradient(90deg,#eef1f6 25%,#f8fafc 37%,#eef1f6 63%);background-size:400% 100%;
   animation:shimmer 1.4s ease infinite}
 .skel i:nth-child(2){width:86%;animation-delay:.12s}
 .skel i:nth-child(3){width:58%;animation-delay:.24s}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
-@media (prefers-reduced-motion:reduce){.steps span.now:after,.skel i{animation:none}}
+@media (prefers-reduced-motion:reduce){.steps:after,.skel i{animation:none}}
 
 /* ── 오른쪽: AI 내부 관계 구조 ───────────────────── */
 .stage{position:relative;background:radial-gradient(ellipse 100% 95% at 50% 45%,#5B9CDD 0%,#5B9CDD 32%,#94BCE5 52%,#B3DBF0 74%,#DEF5FC 85%,#E7EEF2 95%,#FFFFFF 100%);
@@ -160,6 +171,35 @@ canvas.drag{cursor:grabbing}
 .scan i{width:6px;height:6px;border-radius:50%;background:#2f6bd8;animation:scanp 1s infinite}
 @keyframes scanp{0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1.3)}}
 .ask{position:absolute;left:50%;bottom:26px;z-index:2;transform:translateX(-50%);width:min(620px,calc(100% - 36px))}
+/* 처음 온 사람이 무엇을 물으면 되는지 — 눌러서 바로 보내는 예시 */
+.eg{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:10px}
+.eg button{height:28px;padding:0 13px;border-radius:99px;background:rgba(255,255,255,.44);backdrop-filter:blur(8px);
+  color:#27456f;font-size:12.5px;font-weight:500;letter-spacing:-.1px;transition:background .18s,color .18s}
+.eg button:hover{background:#fff;color:#12264a}
+/* 왼쪽 답변 패널 손잡이 — 닫혀 있을 때만 보인다 */
+.ptab{position:absolute;left:0;top:50%;z-index:3;transform:translateY(-50%);display:flex;flex-direction:column;
+  align-items:center;gap:6px;padding:14px 7px;border-radius:0 14px 14px 0;background:rgba(255,255,255,.44);
+  backdrop-filter:blur(8px);color:#27456f;font-size:12px;font-weight:600;letter-spacing:-.1px;transition:background .18s}
+.ptab:hover{background:#fff}
+.ptab i{font-style:normal;font-size:9px;opacity:.7}
+.ptab span{writing-mode:vertical-rl}
+body:not(.bare) .ptab{display:none}
+/* 전시 모드 자막 — 검색창 자리에 선다 */
+.cap{position:absolute;left:50%;bottom:26px;z-index:4;transform:translateX(-50%);width:min(780px,calc(100% - 48px));
+  display:flex;align-items:center;gap:16px;padding:17px 22px;border-radius:22px;
+  background:rgba(255,255,255,.54);backdrop-filter:blur(14px);box-shadow:0 10px 34px rgba(14,46,96,.12)}
+.cap p{flex:1;font-size:16px;line-height:1.6;font-weight:500;color:#12264a;letter-spacing:-.2px;word-break:keep-all;
+  animation:capin .55s cubic-bezier(.3,0,.2,1) both}
+@keyframes capin{from{opacity:0;transform:translateY(5px)}}
+.cap button{flex:none;height:30px;padding:0 14px;border-radius:99px;background:rgba(255,255,255,.72);
+  color:#2b4a7a;font-size:12px;font-weight:600;letter-spacing:-.1px}
+.cap button:hover{background:#fff}
+.cap i{position:absolute;left:22px;right:22px;bottom:8px;height:2px;border-radius:2px;background:rgba(43,74,122,.14);overflow:hidden}
+.cap i:after{content:"";display:block;height:100%;background:#4b87e9;transform-origin:left;
+  animation:capbar linear both;animation-duration:var(--sc,8s)}
+@keyframes capbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+body.demo .ask,body.demo .eg,body.demo .ptab,body.demo .hint{opacity:0;pointer-events:none;transition:opacity .4s}
+@media (prefers-reduced-motion:reduce){.cap p,.cap i:after{animation:none}}
 .field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
   background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55);
   box-shadow:0 6px 24px rgba(30,70,150,.14);
@@ -195,8 +235,9 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
   font-size:11.5px;font-weight:650;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
 .dbtn:hover{border-color:#c5cddb;color:var(--ink)}
 .dbtn i{font:600 10px var(--mono);font-style:normal;color:var(--faint)}
-.design{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding-inline:24px}
-.dz{max-width:980px;margin:0 auto;padding-block:26px 64px}
+.design{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding-inline:32px}
+@media(max-width:860px){.design{padding-inline:18px}}
+.dz{max-width:1040px;margin-inline:auto;padding-block:26px 72px}   /* 설계 글은 가운데로 — 넓은 화면에서 줄이 늘어지지 않게 */
 .dh{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding-block:14px;background:var(--bg);border-bottom:1px solid var(--line)}
 .dh b{font-size:15px;font-weight:800;letter-spacing:.06em}
 .dh span{font-size:12px;color:var(--dim);font-weight:600}
@@ -218,7 +259,7 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 .hero .q2{margin-top:6px;font-size:12.5px;color:var(--ink2);line-height:1.65}
 .hero .stat{margin-top:14px;display:flex;flex-wrap:wrap;gap:18px}
 .hero .stat div{font:500 10px var(--mono);color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
-.hero .stat b{display:block;font:700 18px "Pretendard Variable",Pretendard,system-ui,sans-serif;color:var(--ink);letter-spacing:-.02em;text-transform:none}
+.hero .stat b{display:block;font:700 18px SFKR,-apple-system,sans-serif;color:var(--ink);letter-spacing:-.02em;text-transform:none}
 .axis{display:grid;grid-template-columns:260px minmax(0,1fr);gap:8px;margin-top:12px}
 .axis .fig{background:linear-gradient(180deg,#e7f0fb,#f7fbff);border-radius:6px;display:grid;place-items:center;height:250px;align-self:start;position:sticky;top:64px}
 .axis .rows{display:grid;gap:8px}
@@ -229,6 +270,10 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 .ladder em{font:600 10px var(--mono);font-style:normal;color:var(--faint);text-align:right}
 .ladder b{font-weight:700;color:var(--ink)}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;box-shadow:inset 0 0 0 1px rgba(30,35,44,.18)}
+.howto{margin-top:10px;display:grid;gap:9px;padding-left:18px}
+.howto li{font-size:12.5px;line-height:1.7;color:var(--ink2)}
+.howto li b{color:var(--ink);font-weight:650}
+.design .howto li{font-size:13px;line-height:1.8}
 .ab{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .ab>div{display:grid;grid-template-columns:124px minmax(0,1fr) minmax(0,1fr);gap:18px;padding:13px 16px;align-items:start}
 .ab>div+div{border-top:1px solid var(--line2)}
@@ -275,7 +320,7 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 @media (prefers-reduced-motion:reduce){.steps span{transition:none}}
 
 /* 질문에서 답변까지: 읽는 순서가 보이는 안내 */
-.dz{max-width:1440px;padding-top:0}
+.dz{padding-top:0}
 .dh{padding-block:18px}.dh span{color:var(--ink2)}
 .design .hero{margin-top:32px;padding:28px 30px;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0}
 .hero .q1{font-size:30px;line-height:1.4}.hero .q2{font-size:14px;max-width:740px;line-height:1.8;margin-top:12px}
@@ -343,7 +388,7 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 /* 실제 카드 */
 /* 관계 맵 카드 그대로 — 실제 값(320px 기준)에 0.75 를 곱했다. 글꼴·굵기·자간은 같다 */
 .mn{width:240px;border-radius:18.6px;padding:18.6px;position:relative;
-  font-family:SFKR,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,sans-serif;
+  font-family:SFKR,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
   display:flex;flex-direction:column;gap:6.23px;
   background:radial-gradient(43.2% 64.5% at 49.8% 56.5%,#eaf0fb 3%,#f5f8ff 100%);
   filter:drop-shadow(0 1.2px 3px rgba(0,0,0,.12))}
@@ -411,10 +456,11 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 
 <aside class="side">
   <div class="top">
-    <div class="brand"><b>IRIS</b><span>Meeting Ontology</span><i>TEST</i></div>
+    <div class="brand"><b>IRIS</b><span>회의 온톨로지</span>
+      <button type="button" id="pclose" title="답변 패널 닫기 (H)">◀</button></div>
     <div class="mt" id="mtitle"></div>
     <div class="mm" id="mmeta"></div>
-    <button class="dbtn" id="dopen" type="button">설계 들여다보기 <i>→</i></button>
+    <button class="dbtn" id="dopen" type="button">이 맵은 뭔가요? <i>→</i></button>
   </div>
   <div class="scroll">
     <div class="box" id="box" hidden></div>
@@ -440,11 +486,14 @@ body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
     <span>점선 · 맥락에서 추론 <i class="ln d"></i></span>
   </div>
   <div class="hint">drag 회전 · shift+drag 이동 · wheel 확대 · dblclick 초기화 · X/Y/Z 키 축 훑기 · H 패널</div>
-  <button class="dsgn" id="dopen2" type="button">설계 보기</button>
+  <button class="dsgn" id="dopen2" type="button">이 맵은 뭔가요?</button>
+  <button class="ptab" id="popen" type="button" title="답변 패널 열기 (H)"><i>▶</i><span>답변</span></button>
   <div class="ask">
+    <div class="eg" id="eg"></div>
     <form class="field" id="askf"><input id="askq" autocomplete="off" placeholder="이 회의에 대해 무엇이든 물어보세요"><button>탐색</button></form>
   </div>
   <div class="scan" id="scan"><i></i><span id="scantx"></span></div>
+  <div class="cap" id="cap" hidden><p id="capt"></p><button type="button" id="capx">직접 둘러보기</button><i></i></div>
   <div class="viewbar" id="viewbar">
     <button type="button" data-view="all" class="on">다 보기</button>
     <button type="button" data-view="nodes">점만</button>
@@ -1071,7 +1120,7 @@ function focusNode(n) {
   showDetail(n);
 }
 function clearFocus() {
-  resetLights(); dimTo = 0; $('#box').hidden = true;
+  resetLights(); dimTo = 0; $('#box').hidden = true; $('#sidehint').hidden = false; $('#eg').hidden = false;
   document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel'));
 }
 function quoteBlock(o, who) {
@@ -1086,7 +1135,7 @@ function edgeRow(e, from) {
     <span class="badge ${e.explicitness === 'inferred' ? 'inf' : 'exp'}">${e.explicitness} ${e.confidence.toFixed(2)}</span></div>`;
 }
 function showDetail(n) {
-  const box = $('#box'); box.hidden = false;
+  const box = $('#box'); box.hidden = false; $('#sidehint').hidden = true;
   const topic = TOPIC[n.topic];
   box.innerHTML = `<div class="bq"><b><span class="badge">${n.type}</span> ${esc(n.label)}</b><button class="x" data-close>✕</button></div>
     <div class="ans"><div>${esc(n.text)}</div></div>
@@ -1319,7 +1368,7 @@ function compose(R) {
   return { lead, groups };
 }
 
-const STEP_NAMES = ['질문 해석', '후보 노드 점등', '관계 탐색', '원 발화 확인', '답변'];
+const STEP_NAMES = ['질문을 읽는 중', '맵에서 관계를 따라가는 중', '답을 정리하는 중'];
 /* 탐색 순서는 타이머로 돈다. 그리기(rAF)와 떼어 두어야 탭이 가려져 있어도 답이 끝까지 나온다. */
 const Q = { active: false, timers: [] };
 function cancelQuery() { Q.active = false; Q.timers.forEach(clearTimeout); Q.timers = []; orbitOff(); stopScan(); }
@@ -1353,10 +1402,11 @@ function stopScan() {
   $('#scan').classList.remove('on');
 }
 function setStep(i) {
-  const box = $('#box'); box.querySelectorAll('.steps span').forEach((s, k) => {
-    s.classList.toggle('on', k <= i); s.classList.toggle('now', k === i);
-  });
-  const l = box.querySelector('.stepl'); if (l) l.textContent = `${i + 1}/5 · ${STEP_NAMES[i]}`;
+  const l = $('#box').querySelector('.stepl');
+  if (l) l.textContent = STEP_NAMES[Math.min(STEP_NAMES.length - 1, i)];
+}
+function stepDone() {                                  /* 답이 나오면 진행 표시는 치운다 */
+  const b = $('#box'); b.querySelector('.steps')?.remove(); b.querySelector('.stepl')?.remove();
 }
 /* 질문 → Claude(이 맥의 구독)가 의도를 읽고 그래프에서 경로를 고른다. 서버가 없으면 규칙 기반 탐색으로 대신한다. */
 const API = location.protocol.startsWith('http') ? '/ask' : 'http://127.0.0.1:8791/ask';
@@ -1408,37 +1458,39 @@ function play(R, render) {                              /* 후보 점등 → 관
     const withQ = R.nodes.filter(n => n.quote).sort((a, b) => a.sec - b.sec);
     $('#res').innerHTML = `<div class="hd">source utterances · ${withQ.length}</div><div class="src">${withQ.map(n =>
       `<div data-go="${n.id}">${quoteBlock(n)}</div>`).join('')}</div>`; });
-  at(700, () => { setStep(4); $('#res').innerHTML = render(); });
+  at(700, () => { $('#res').innerHTML = render(); stepDone(); });
   Q.active = true;
   Q.timers = tl.map(s => setTimeout(() => s.fn(performance.now()), s.at));
   Q.timers.push(setTimeout(() => { Q.active = false; }, t + 50));
 }
 function notFound(msg) {
-  dimTo = 0; setStep(0);
+  dimTo = 0; stepDone();
   $('#res').innerHTML = `<div class="lead"><p>${esc(msg)}</p></div>`;
 }
 async function ask(q) {
   q = q.trim(); if (!q) return;
   cancelQuery(); resetLights();
   document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel'));
-  const box = $('#box'), my = ++askSeq; box.hidden = false;
+  const box = $('#box'), my = ++askSeq; box.hidden = false; $('#sidehint').hidden = true;
   box.innerHTML = `<div class="bq"><b>${esc(q)}</b><button class="x" data-close>✕</button></div>
-    <div class="steps">${STEP_NAMES.map(() => '<span></span>').join('')}</div><div class="stepl"></div>
+    <div class="steps"></div><div class="stepl"></div>
     <div id="res"><div class="skel"><i></i><i></i><i></i></div></div>`;
   box.scrollIntoView({ block: 'nearest' });
   setStep(0); dimTo = .72;
+  $('#askq').value = ''; $('#askq').blur();            /* 보낸 질문은 입력창을 떠나 왼쪽 패널로 간다 */
+  $('#eg').hidden = true;
   bare(false);                                         /* 답은 왼쪽 패널에 나온다 — 질문하면 열어 준다 */
   startScan(q);
-  /* 답이 오기 전에도 어디까지 왔는지 보이게 — 네 번째 칸까지만 혼자 넘어가고 마지막은 답이 왔을 때 */
-  const AT = [0, 1200, 2800, 4800];
+  /* 어디까지 왔는지만 한 줄로. 단계를 쪼개 보여 주지 않는다 — 기다리는 사람이 세어야 할 숫자가 늘 뿐이다 */
+  const AT = [0, 1800, 5000];
   const t0 = Date.now(), tick = setInterval(() => {
     if (my !== askSeq) return clearInterval(tick);
     const ms = Date.now() - t0;
     let i = 0; while (i < AT.length - 1 && ms >= AT[i + 1]) i++;
     setStep(i);
-    const l = box.querySelector('.stepl'), line = `${i + 1}/5 · ${STEP_NAMES[i]} · 찾는 중 ${(ms / 1000) | 0}초`;
+    const l = box.querySelector('.stepl'), line = `${STEP_NAMES[i]} · ${(ms / 1000) | 0}초`;
     if (l) l.textContent = line;
-    $('#scantx').textContent = line;                   /* 맵 쪽에도 같은 진행을 띄운다 */
+    $('#scantx').textContent = line;                   /* 맵 쪽에도 같은 한 줄을 띄운다 */
   }, 200);
   let ai = null, why = '';
   try {
@@ -1460,12 +1512,108 @@ async function ask(q) {
 }
 $('#askf').addEventListener('submit', e => { e.preventDefault(); ask($('#askq').value); });
 
+/* 처음 온 사람은 무엇을 물어야 할지부터 막힌다 — 눌러서 바로 보내는 예시를 깔고,
+   입력창 안내문은 그 예시들을 천천히 돌려 보여 준다 */
+const EG = ['로고는 왜 그렇게 정했어?', '할 일 알려줘', '아직 안 정해진 건 뭐야?',
+            '타깃 부위는 어떻게 정했어?', 'Lina 가 맡은 건 뭐야?', '반대 의견이 있었어?'];
+$('#eg').innerHTML = EG.slice(0, 3).map(q => `<button type="button">${esc(q)}</button>`).join('');
+$('#eg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ask(b.textContent); });
+{
+  let i = 0;
+  setInterval(() => {
+    const el = $('#askq');
+    if (el.value || document.activeElement === el) return;
+    el.placeholder = `예: ${EG[i = (i + 1) % EG.length]}`;
+  }, 3800);
+}
+
+/* 왼쪽 답변 패널 여닫이 — H 키와 같은 일을 하는 눈에 보이는 버튼 */
+$('#pclose').onclick = () => bare(true);
+$('#popen').onclick = () => bare(false);
+
+/* ══ 전시 모드 — 아무도 만지지 않으면 맵이 스스로 설명한다 ══════════════
+   자막은 검색창 자리에 서고, 맵은 그 말에 맞춰 한 장면씩 움직인다.
+   질문 장면은 규칙 기반 탐색으로 돈다 — 전시 내내 도는 것이라 AI 서버를 부르지 않는다. */
+const IDLE_MS = 40000;
+function wideShot(k, pitch) {                           /* 전체가 한눈에 들어오는 자리 */
+  const ns = NODES.filter(n => n.x != null);
+  const avg = c => ns.reduce((a, n) => a + n[c], 0) / ns.length;
+  const c = { x: avg('x'), y: avg('y'), z: avg('z') };
+  const R = Math.max(...ns.map(n => Math.hypot(n.x - c.x, n.y - c.y, n.z - c.z)));
+  camTo = { tx: c.x, ty: c.y, tz: c.z, dist: R * k, yaw: cam.yaw, pitch: pitch ?? -.2 };
+}
+function demoAsk(q) {                                   /* 답변 화면까지 보여 주는 장면 */
+  bare(false);
+  const box = $('#box'); box.hidden = false; $('#sidehint').hidden = true;
+  box.innerHTML = `<div class="bq"><b>${esc(q)}</b></div><div id="res"></div>`;
+  const R = explore(q);
+  if (R.fail) return;
+  const A = compose(R);
+  play(R, () => answerHTML(A.lead, A.groups, R, ''));
+}
+const SHOW = [
+  { ms: 7500, say: 'Iris 는 회의의 맥락과 논의 과정을 보존하는 회의록 서비스입니다.',
+    go: () => { bare(true); setView('all'); stopTour(); clearFocus(); resetLights();
+      tourKTo = 0; dimTo = .66; orbitOff();
+      camTo = { tx: HC.x, ty: HC.y, tz: HC.z, dist: 300, yaw: .16, pitch: -.02 }; } },
+  { ms: 10000, say: '기존 AI 요약은 회의 내용을 비슷한 비중으로 나열합니다. Iris 는 각 내용의 역할과 서로의 관계를 함께 기록합니다.',
+    go: () => { dimTo = 0; wideShot(1.3); setTimeout(orbitOn, 1200); } },
+  { ms: 7000, say: `이 웹은 회의 내용의 연결 관계를 입체적으로 보여줍니다. ${NODES.length}개의 점과 ${EDGES.length}개의 선이 하나의 맵을 이룹니다.`,
+    go: () => { orbitOn(); } },
+  { ms: 17500, say: '가로축은 회의 시간입니다. 왼쪽에서 시작해 오른쪽으로 갈수록 회의가 끝나갑니다.',
+    go: () => startTour('x') },
+  { ms: 15500, say: '세로축은 내용의 역할을 나타냅니다. 아래에는 근거와 쟁점이, 위에는 결론과 업무가 놓입니다.',
+    go: () => startTour('y') },
+  { ms: 12500, say: '깊이는 다른 내용과 얼마나 많이 연결되어 있는지를 나타냅니다. 연결이 많을수록 앞쪽에 놓입니다.',
+    go: () => startTour('z') },
+  { ms: 10000, say: '점은 회의에서 나온 각각의 내용이고, 선은 그 사이의 관계입니다. 어떤 의견을 뒷받침하거나 반박했는지, 어떤 제안이 결론으로 이어졌는지 보여줍니다.',
+    go: () => { stopTour(); dimTo = 0; setView('edges'); wideShot(1.0); setTimeout(orbitOn, 1000); } },
+  { ms: 16000, say: '궁금한 내용을 질문하면 맵의 연결 관계를 따라 답을 찾고, 근거가 된 발언도 함께 보여줍니다.',
+    go: () => { setView('all'); demoAsk('로고는 왜 그렇게 정했어?'); } },
+  { ms: 7000, say: '화면을 누르면 맵을 직접 둘러볼 수 있습니다.',
+    go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(1.1); setTimeout(orbitOn, 900); } },
+];
+let showT = 0;
+const inDemo = () => document.body.classList.contains('demo');
+function demoScene(i) {
+  const s = SHOW[i % SHOW.length], p = $('#capt'), bar = $('#cap').querySelector('i');
+  p.textContent = s.say;
+  p.style.animation = 'none'; void p.offsetWidth; p.style.animation = '';   /* 자막이 바뀔 때마다 다시 떠오르게 */
+  bar.style.setProperty('--sc', s.ms + 'ms');
+  bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
+  s.go();
+  showT = setTimeout(() => demoScene(i + 1), s.ms);
+}
+function demoOn() {
+  if (inDemo() || !$('#design').hidden || Q.active) return;
+  document.body.classList.add('demo');
+  $('#cap').hidden = false;
+  demoScene(0);
+}
+function demoOff() {
+  if (!inDemo()) return;
+  clearTimeout(showT);
+  document.body.classList.remove('demo');
+  $('#cap').hidden = true;
+  stopTour(); cancelQuery(); clearFocus(); setView('all');
+  orbitOff(); dimTo = 0; tourKTo = 0; fitAll();
+  lastInput = performance.now();
+}
+$('#capx').onclick = demoOff;
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
+  addEventListener(ev, () => { lastInput = performance.now(); demoOff(); }, { passive: true, capture: true }));
+setInterval(() => {
+  if (inDemo() || !$('#design').hidden || Q.active) return;
+  if (performance.now() - lastInput > IDLE_MS) demoOn();
+}, 2000);
+
 /* ================= 6. 왼쪽 — 질문에 대한 답만 ================= */
 /* 결정·조건부·미결·업무 목록은 실제 서비스 웹(meetnote)이 보여 준다.
    여기는 그래프가 질문에 어떻게 답하는지만 본다. */
 NODES.forEach(n => { n.inView = true; });
 
-$('#mtitle').textContent = G.meeting.title;
+const MTITLE = G.meeting.title.replace(/\s*통합\s*회의\s*$/, '');
+$('#mtitle').textContent = MTITLE;
 $('#mmeta').textContent = `${G.meeting.date} · ${G.meeting.duration} · node ${NODES.length} · edge ${EDGES.length} · explicit ${EDGES.filter(e => e.explicitness === 'explicit').length}`;
 /* ================= 7. 설계 들여다보기 =================
    숫자와 목록은 지금 그려진 그래프(graph.js)에서 바로 센다. 설명 문장만 가이드를 따른다. */
@@ -1541,15 +1689,80 @@ function renderDesign() {
   const chains = ['t1', 't7', 't9'].map(chainOf).filter(Boolean);
 
   $('#design').innerHTML = `<div class="dz">
-  <div class="dh"><b>IRIS</b><span>Ontology Design · 설계 들여다보기</span><button type="button" id="dclose">닫기 ✕</button></div>
+  <div class="dh"><b>IRIS</b><span>이 맵은 뭔가요 · 회의 한 건을 지도로 만드는 법</span><button type="button" id="dclose">닫기 ✕</button></div>
+  <div class="dwrap">
 
 
   <header class="hero">
-    <div class="eyebrow">MEETING ONTOLOGY · DATA FLOW</div>
-    <h1 class="q1">회의의 문장이<br>탐색 가능한 맵이 되는 과정.</h1>
-    <p class="q2">사람·논의·결과를 각각의 노드로 두고, 누가 말했는지·무엇을 바꿨는지·누가 맡는지를 관계로 연결합니다. 회의 결과뿐 아니라 그 결과에 이른 과정과 책임까지 탐색합니다.</p>
+    <div class="eyebrow">회의 온톨로지 · 이 맵은 뭔가요</div>
+    <h1 class="q1">회의에서 나온 말이<br>따라갈 수 있는 지도가 됩니다.</h1>
+    <p class="q2">사람·논의·결과를 각각의 점으로 두고, 누가 말했는지 · 무엇을 바꿨는지 · 누가 맡는지를 선으로 잇습니다. 회의의 결론뿐 아니라 그 결론에 이른 과정과 책임까지 따라갈 수 있습니다.</p>
     <div class="stat"><div><b>${NODES.length}</b>개의 정보 · 노드</div><div><b>${EDGES.length}</b>개의 연결 · 관계</div><div><b>${withQuote}</b>개의 원문이 연결된 노드</div></div>
   </header>
+
+  <section class="dsec" aria-labelledby="what-title"><div class="lb">START HERE · 처음 오셨다면</div>
+    <h2 id="what-title">온톨로지란 무엇인가요?</h2>
+    <p class="sub">일반적인 회의록은 내용을 시간순으로 정리합니다. 온톨로지는 같은 내용을 서로 연결된 지도로 보여줍니다.
+      정해진 순서대로 읽는 대신, 궁금한 내용에서 출발해 관련된 의견과 근거를 따라가며 살펴볼 수 있습니다.</p>
+    <div class="dgrid">
+      <div class="dc"><div class="k">온톨로지</div><h4>회의 내용을 연결한 지도</h4>
+        <p>회의에서 나온 내용을 종류별로 나누고, 서로 어떤 관계인지 정리한 것입니다. 지하철 노선도가 역과 역의 연결을 보여주듯,
+          이 맵은 회의에서 나온 의견과 근거, 결정이 어떻게 이어지는지 보여줍니다.</p>
+        <div class="fg"><svg viewBox="0 0 190 96" aria-hidden="true">
+          <line x1="30" y1="26" x2="92" y2="54" stroke="#b9c8e6" stroke-width="1.6"/>
+          <line x1="92" y1="54" x2="158" y2="32" stroke="#b9c8e6" stroke-width="1.6"/>
+          <line x1="92" y1="54" x2="118" y2="82" stroke="#b9c8e6" stroke-width="1.6" stroke-dasharray="3 3"/>
+          <circle cx="30" cy="26" r="6" fill="#8aa0e6"/><circle cx="92" cy="54" r="8" fill="#365493"/>
+          <circle cx="158" cy="32" r="6" fill="#8aa0e6"/><circle cx="118" cy="82" r="5" fill="#b9a6ee"/>
+          <text x="30" y="12" text-anchor="middle" font-size="8.5" fill="#6e7a8d">근거</text>
+          <text x="92" y="76" text-anchor="middle" font-size="8.5" fill="#6e7a8d">제안</text>
+          <text x="158" y="18" text-anchor="middle" font-size="8.5" fill="#6e7a8d">결론</text>
+        </svg></div></div>
+
+      <div class="dc"><div class="k">점 · 노드</div><h4>회의에서 나온 각각의 내용</h4>
+        <p>한 문장이 반드시 하나의 점이 되는 것은 아닙니다. <b>“무릎 부상이 가장 많으니 무릎을 주제로 하죠”</b>라는 말에는
+          근거(무릎 부상이 가장 많다)와 제안(무릎을 주제로 하자)이 함께 담겨 있습니다. 이 둘을 각각 하나의 점으로 나타냅니다.
+          회의에 참여한 사람과 담당 분야, 다음 회의 일정도 점이 될 수 있습니다.</p>
+        <div class="fg"><svg viewBox="0 0 190 96" aria-hidden="true">
+          <rect x="16" y="10" width="158" height="22" rx="6" fill="#eef1f8"/>
+          <text x="95" y="25" text-anchor="middle" font-size="8.5" fill="#4a5566">“무릎 부상이 가장 많으니 무릎을 주제로 하죠”</text>
+          <path d="M70 34v10M120 34v10" stroke="#c3cede" stroke-width="1.4"/>
+          <rect x="18" y="48" width="86" height="30" rx="7" fill="#e5ebf7" stroke="#d2dcf0"/>
+          <text x="61" y="62" text-anchor="middle" font-size="8.5" fill="#365493">근거</text>
+          <text x="61" y="72" text-anchor="middle" font-size="7.5" fill="#6e7a8d">무릎 부상이 가장 많다</text>
+          <rect x="110" y="48" width="62" height="30" rx="7" fill="#e5ebf7" stroke="#d2dcf0"/>
+          <text x="141" y="62" text-anchor="middle" font-size="8.5" fill="#365493">제안</text>
+          <text x="141" y="72" text-anchor="middle" font-size="7.5" fill="#6e7a8d">무릎을 주제로</text>
+        </svg></div></div>
+
+      <div class="dc"><div class="k">선 · 엣지</div><h4>내용과 내용 사이의 관계</h4>
+        <p>선은 단순히 두 내용이 관련 있다는 뜻이 아닙니다. 어떤 의견을 뒷받침했는지, 무엇을 반박하거나 수정했는지,
+          어떤 제안이 결론으로 채택되었는지를 보여줍니다. 선을 따라가면 하나의 결정이 어떤 근거와 논의를 거쳐 나왔는지 확인할 수 있습니다.</p>
+        <div class="fg"><svg viewBox="0 0 190 96" aria-hidden="true">
+          <g font-size="8" fill="#6e7a8d">
+            <line x1="20" y1="20" x2="78" y2="20" stroke="#8aa0e6" stroke-width="1.6"/>
+            <path d="M84 20l-7-4v8z" fill="#8aa0e6"/><text x="92" y="23">뒷받침했다</text>
+            <line x1="20" y1="46" x2="78" y2="46" stroke="#e0443e" stroke-width="1.6"/>
+            <path d="M84 46l-7-4v8z" fill="#e0443e"/><text x="92" y="49">반박했다</text>
+            <line x1="20" y1="72" x2="78" y2="72" stroke="#d99a2b" stroke-width="1.6" stroke-dasharray="3 3"/>
+            <path d="M84 72l-7-4v8z" fill="#d99a2b"/><text x="92" y="75">결론이 됐다</text>
+          </g>
+        </svg></div></div>
+    </div>
+
+    <div class="dgrid" style="margin-top:12px">
+      <div class="dc"><div class="k">왜 입체인가요</div><h4>좌표에도 뜻이 있습니다</h4>
+        <p>이 맵은 점을 무작위로 배치하지 않고, 세 방향에 각각 의미를 담았습니다. <b>가로는 회의 시간</b>,
+          <b>세로는 내용의 종류</b>(근거 · 제안 · 결론 · 업무 등), <b>깊이는 다른 내용과 연결된 정도</b>를 나타냅니다.
+          이를 통해 회의 후반에 결론이 집중되었는지, 어떤 내용이 여러 논의와 연결되었는지 살펴볼 수 있습니다.</p></div>
+      <div class="dc"><div class="k">이렇게 살펴보세요</div><h4>세 가지만 눌러 보면 됩니다</h4>
+        <ol class="howto">
+          <li><b>아래 질문창에 질문해 보세요.</b> 맵에서 관련된 점을 찾아 보여주고, 왼쪽에는 답변과 근거가 된 발언이 나타납니다.</li>
+          <li><b>왼쪽 위의 X · Y · Z를 눌러 보세요.</b> 카메라가 각 방향으로 이동하며 점들이 어떻게 배치되어 있는지 보여줍니다.</li>
+          <li><b>오른쪽 아래의 ‘선만’을 눌러 보세요.</b> 평소에는 숨겨진 관계선이 드러나 회의 내용이 어떻게 연결되어 있는지 살펴볼 수 있습니다.</li>
+        </ol></div>
+    </div>
+  </section>
 
   <section class="dsec" aria-labelledby="journey-title"><div class="lb">참여자·원문 → 의미 분류 → 관계 정의 → XYZ 배치 → 경로 조회</div>
     <h2 id="journey-title">맵을 구축하고 활용하는 다섯 단계</h2>
@@ -1889,6 +2102,7 @@ function renderDesign() {
     </section>
     <section class="dsec"><h2>어떤 관계로 연결되나요?</h2><p class="sub">각 관계의 의미와 개수예요. KEY는 결론으로 이어지는 핵심 관계로, 맵에서 조금 더 밝게 표시해요.</p><div class="tbl">${edgeRows}</div></section>
   </details>
+  </div>
   <p class="end-note">핵심은 원문 → 노드 → 관계 → 탐색 경로로 이어지는 출처의 연결입니다. 같은 맵을 결정의 이유, 담당 업무, 남은 쟁점 등 서로 다른 질문에 활용합니다.</p>
 
 </div>`;
