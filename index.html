@@ -133,6 +133,32 @@ canvas.drag{cursor:grabbing}
 .legend i{width:6px;height:6px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.45)}
 .legend .ln{width:18px;height:0;border-top:1px solid rgba(255,255,255,.85);border-radius:0;box-shadow:none}
 .legend .ln.d{border-top-style:dashed;border-color:rgba(255,255,255,.6)}
+/* 맵을 읽는 도구 — 축 투어 · 보기 전환. 설계 보기에 들어가지 않아도 맵만으로 이해되게 둔다 */
+.axes{top:56px;left:16px;width:208px;padding:4px;border-radius:14px;pointer-events:auto;
+  background:rgba(255,255,255,.28);backdrop-filter:blur(8px);color:#2b4a7a}
+.axes b{color:#12264a}
+.axes button{display:block;width:100%;text-align:left;padding:4px 9px 5px;border-radius:10px;
+  background:transparent;color:inherit;font:inherit;letter-spacing:inherit;cursor:pointer;transition:background .18s,color .18s}
+.axes button:hover{background:rgba(255,255,255,.6)}
+.axes button.on{background:#fff;color:#12264a}
+.axes button small{display:block;margin-top:1px;font-size:9px;color:#50719f;letter-spacing:0}
+.viewbar{position:absolute;right:18px;bottom:22px;z-index:2;display:flex;gap:3px;padding:3px;border-radius:15px;
+  background:rgba(255,255,255,.3);backdrop-filter:blur(8px);font:600 10px var(--mono)}
+.viewbar button{height:24px;padding:0 11px;border-radius:12px;color:#2b4a7a;cursor:pointer;
+  letter-spacing:-.01em;transition:background .18s,color .18s}
+.viewbar button:hover{background:rgba(255,255,255,.55)}
+.viewbar button.on{background:#fff;color:#12264a}
+.tourcap{position:absolute;left:50%;top:18px;z-index:2;transform:translateX(-50%);padding:7px 15px;border-radius:16px;
+  background:rgba(255,255,255,.36);backdrop-filter:blur(8px);color:#17305c;font:600 11px var(--mono);
+  letter-spacing:-.01em;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none}
+.tourcap.on{opacity:1}
+.tourcap em{font-style:normal;opacity:.62;margin-left:9px;font-weight:500}
+.scan{position:absolute;left:50%;bottom:78px;z-index:2;transform:translateX(-50%);display:none;align-items:center;gap:8px;
+  padding:6px 14px;border-radius:15px;background:rgba(255,255,255,.36);backdrop-filter:blur(8px);
+  color:#17305c;font:600 10.5px var(--mono);letter-spacing:-.01em;white-space:nowrap;pointer-events:none}
+.scan.on{display:flex}
+.scan i{width:6px;height:6px;border-radius:50%;background:#2f6bd8;animation:scanp 1s infinite}
+@keyframes scanp{0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1.3)}}
 .ask{position:absolute;left:50%;bottom:26px;z-index:2;transform:translateX(-50%);width:min(620px,calc(100% - 36px))}
 .field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
   background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55);
@@ -155,7 +181,7 @@ canvas.drag{cursor:grabbing}
 body.bare{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden}
 body.bare .side{display:none}
 body.bare .stage{grid-column:1/-1}
-body.bare .axes,body.bare .legend,body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
+body.bare .hint{opacity:0;pointer-events:none;transition:opacity .25s}
 /* 설계 보기 — 상단 왼쪽 알약 */
 .dsgn{position:absolute;left:18px;top:18px;z-index:2;height:28px;padding:0 14px;border-radius:14px;
   background:rgba(255,255,255,.92);box-shadow:0 1px 5px rgba(20,54,104,.14);
@@ -386,7 +412,12 @@ body.bare .axes,body.bare .legend,body.bare .hint{opacity:0;pointer-events:none;
 
 <main class="stage" id="stage">
   <canvas id="cv"></canvas>
-  <div class="axes"><div id="ax-x"><b>X</b> 회의 시간 →</div><div id="ax-y"><b>Y</b> 정보 역할 ↑ 근거 · 쟁점 · 주장 · 결론 · 업무</div><div id="ax-z"><b>Z</b> 관계 밀도 · 영향 범위</div></div>
+  <div class="axes">
+    <div id="ax-x"><button type="button" data-tour="x"><b>X</b> 회의 시간 →<small>누르면 회의 순서대로 훑어요</small></button></div>
+    <div id="ax-y"><button type="button" data-tour="y"><b>Y</b> 정보 역할 ↑<small>근거 · 쟁점 · 주장 · 결론 · 업무</small></button></div>
+    <div id="ax-z"><button type="button" data-tour="z"><b>Z</b> 관계 밀도<small>많이 엮인 것일수록 앞으로</small></button></div>
+  </div>
+  <div class="tourcap" id="tourcap"></div>
   <div class="legend">
     <span>Evidence · Discussion <i style="background:#cfe4ff"></i></span>
     <span>Concern · Condition <i style="background:#e0d8ff"></i></span>
@@ -395,10 +426,16 @@ body.bare .axes,body.bare .legend,body.bare .hint{opacity:0;pointer-events:none;
     <span>◇ 참여자 · □ 파트 · ○ 일정</span><span>실선 · 발언에 명시 <i class="ln"></i></span>
     <span>점선 · 맥락에서 추론 <i class="ln d"></i></span>
   </div>
-  <div class="hint">drag 회전 · shift+drag(또는 오른쪽 끌기) 이동 · wheel 확대 · 노드에 올리면 이름 · dblclick 초기화</div>
+  <div class="hint">drag 회전 · shift+drag 이동 · wheel 확대 · dblclick 초기화 · X/Y/Z 키 축 훑기 · H 패널</div>
   <button class="dsgn" id="dopen2" type="button">설계 보기</button>
   <div class="ask">
     <form class="field" id="askf"><input id="askq" autocomplete="off" placeholder="이 회의에 대해 무엇이든 물어보세요"><button>탐색</button></form>
+  </div>
+  <div class="scan" id="scan"><i></i><span id="scantx"></span></div>
+  <div class="viewbar" id="viewbar">
+    <button type="button" data-view="all" class="on">다 보기</button>
+    <button type="button" data-view="nodes">점만</button>
+    <button type="button" data-view="edges">선만</button>
   </div>
 </main>
 
@@ -439,8 +476,8 @@ const VERB = { SUPPORTS: '뒷받침', CHALLENGES: '문제 제기', OPPOSES: '반
 const KEY = new Set(['ADOPTED_AS', 'RESOLVES', 'REVISES', 'REPLACES', 'CREATES']);
 /* 관계는 세 갈래로 묶어 부른다 — 선 위에는 이 이름만 띄운다 */
 const AXIS_EN = { discussion: 'Dynamics', outcome: 'Outcomes', participant: 'Actors' };
-/* 책임자 표시 — 공개본에는 참가자 사진을 올리지 않는다 */
-const FACE_SRC = { 'Yebin': 'av1.svg', 'Lina': 'av2.svg', 'James': 'av3.svg', 'K': 'av4.svg' };   /* 공개본은 사진이 아니라 글자 동그라미 */
+/* 책임자 표시 — 공개본에는 참가자 사진을 올리지 않는다 (글자 동그라미) */
+const FACE_SRC = { 'Yebin': 'av1.svg', 'Lina': 'av2.svg', 'James': 'av3.svg', 'K': 'av4.svg' };
 const FACE = {};
 for (const k in FACE_SRC) { const im = new Image(); im.src = FACE_SRC[k]; FACE[k] = im; }
 
@@ -545,6 +582,14 @@ function project(x, y, z) {
 }
 
 let dim = 0, dimTo = 0, viewDim = 0, viewDimTo = 0, hover = null;
+
+/* 맵 자체를 읽는 세 가지 보기. '선만' 은 평소 숨겨 둔 논의·결과 관계선을 전부 옅게 깐다
+   (발언자 선 281개는 뺀다 — 깔면 덩어리가 되어 아무것도 안 보인다) */
+let VIEW = 'all';
+function setView(v) {
+  VIEW = v;
+  document.querySelectorAll('#viewbar button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+}
 
 /* ── 첫 진입 연출 ───────────────────────────────
    0.0s X(시간) → 0.7s Y(위계) → 1.4s Z(관계 밀도) 축이 차례로 그어지고,
@@ -669,12 +714,14 @@ function track(n, p, r, k, on, al, now) {
 
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return;        /* 가려진 탭은 그리지 않는다 — 노트북 팬이 돈다 */
   const now = performance.now();   /* 파동·입자 시작 시각과 같은 시계를 쓴다 (rAF 시각은 조금 이를 수 있다) */
   const kCam = K(260), kDim = K(220), kGlow = K(170), kSway = K(800), kView = K(190), kLbl = K(130);
   const dt = Math.min(120, now - lastT);
   lastT = now;
   // 카메라
-  if (camTo) {
+  if (TOUR) tourStep(now, dt, kCam);
+  else if (camTo) {
     if (ORBIT) {                                   /* 목표 각도를 아주 천천히 흔들면 카메라가 그 뒤를 부드럽게 따라간다 */
       const dt = now - ORBIT.t0;
       camTo.yaw = ORBIT.yaw0 + Math.sin(dt * .00011) * .16;
@@ -738,17 +785,19 @@ function frame() {
   for (const e of EDGES) {
     const a = e.s.p, b = e.d.p; if (!a || !b) continue;
     const ctxEdge = e.axis === 'participant';
-    const L = Math.max(e.lit, e.amb || 0);
+    if (VIEW === 'nodes') continue;                   /* 점만 보기 */
+    const Lq = Math.max(e.lit, e.amb || 0);           /* 실제로 켜진 정도 — 흐르는 빛·번짐은 이것만 보고 켠다 */
+    const L = Math.max(Lq, VIEW === 'edges' && !ctxEdge ? .5 : 0);
     if (e.type === 'SAID_BY' && !e.litTo && L < .02) continue;
     const al = Math.min(1, L * .95 * edgeK);     /* 미리 깔아 두지 않는다 — 답을 따라갈 때, 또는 가까이 왔을 때만 */
     if (al < .02) continue;
     ctx.setLineDash(e.explicitness === 'inferred' ? [1.4, 2.4] : []);
     ctx.strokeStyle = `rgba(255,255,255,${al * .85})`;   /* 흰 선 — 옅은 아래쪽에서도 떠 보이게 옅은 빛을 깐다 */
-    ctx.shadowColor = `rgba(38,88,176,${al * .28})`; ctx.shadowBlur = 3;
+    ctx.shadowColor = `rgba(38,88,176,${al * .28})`; ctx.shadowBlur = Lq > .35 ? 3 : 0;   /* 390개 전부에 번짐을 주면 느려진다 */
     ctx.lineWidth = (KEY.has(e.type) ? .7 : .5) + L * .28;
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     /* 실선 위로 빛 한 조각이 점에서 점으로 흘러간다 */
-    if (e.explicitness !== 'inferred' && L > .3) {
+    if (e.explicitness !== 'inferred' && Lq > .3) {
       const len = Math.hypot(b.x - a.x, b.y - a.y);
       if (len > 24) {
         e.phase ??= Math.random();
@@ -812,7 +861,7 @@ function frame() {
   for (const n of order) {
     if (lgLeft && n.p.zc < lgP.zc) { drawLogo(lgP, lgA); lgLeft = false; }
     const p = n.p, ctxNode = CTX.has(n.type);
-    let al = (ctxNode ? .7 : 1) * (1 - dim * .9) * (1 - viewDim * (n.inView ? 0 : .72));
+    let al = (ctxNode ? .7 : 1) * (1 - dim * .9) * (1 - viewDim * (n.inView ? 0 : .72)) * (VIEW === 'edges' ? .4 : 1);
     al = Math.min(1, al * fog(p) * (n.glow > .3 ? 1 : (NODE_A[n.type] || 1)) + n.glow) * n.inK;
     const r = n.r * p.s * 1.55 * (1 + n.glow * .4);
     const col = COLOR[n.type];
@@ -828,7 +877,11 @@ function frame() {
     }
     else { ctx.fillStyle = n.glow > .3 ? '#ffffff' : col; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(.85, r * .62), 0, 7); ctx.fill(); }
     /* 답이 켜질 때는 띄우지 않는다 — 올렸을 때(칩)와 가까이 왔을 때(옅은 글자) */
-    const lbl = hover === n ? 1 : (n.lbl > .02 && !placed.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 86) ? n.lbl : 0);
+    /* 답의 핵심 노드와 투어가 지금 지나는 노드는 이름을 띄운다 — 뭘 찾았는지 맵에서도 읽히게.
+       올린 것 말고는 전부 겹침 검사를 거친다. 안 그러면 빽빽한 구간에서 글자가 엉킨다 */
+    const want = n.glow > .95 ? 1 : (n.lbl > .02 ? n.lbl : 0);
+    const lbl = hover === n ? 1
+      : (want > .02 && !placed.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 86) ? want : 0);
     if (lbl > .02) { placed.push(p); track(n, p, r, lbl, hover === n, al, now); }
     if (n.glow > .5 && (n.type === 'Decision' || n.type === 'Conditional' || n.type === 'Action' || n.type === 'Open')) {
       ctx.globalAlpha = (n.glow - .5) * .8; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = .7;
@@ -849,7 +902,7 @@ cv.addEventListener('pointerdown', e => {
   drag = { x: e.clientX, y: e.clientY, yaw: cam.yaw, pitch: cam.pitch, moved: false,
     pan: e.button === 1 || e.button === 2 || e.shiftKey,      /* 오른쪽·가운데 끌기 또는 shift — 시점을 옮긴다 */
     tx: cam.tx, ty: cam.ty, tz: cam.tz };
-  cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); camTo = null; orbitOff(); lastInput = performance.now(); });
+  cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); camTo = null; orbitOff(); stopTour(); lastInput = performance.now(); });
 cv.addEventListener('pointermove', e => {
   if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
@@ -892,9 +945,67 @@ function lookAt(ns, tight) {
   const pts = ns.filter(n => n.x != null); if (!pts.length) return;
   const avg = k => pts.reduce((a, n) => a + n[k], 0) / pts.length;
   const span = Math.max(tight ? 150 : 260, ...pts.map(n => Math.hypot(n.x - avg('x'), n.y - avg('y'), n.z - avg('z'))));
-  const d = tight ? Math.max(360, Math.min(880, span * .74)) : Math.max(380, Math.min(1050, span * .85));
+  /* 왼쪽 패널이 열려 있으면 맵이 쓰는 폭이 절반 가까이 준다 — 그만큼 물러나야 덩어리가 다 들어온다 */
+  const wide = document.body.classList.contains('bare') ? 1 : 1.34;
+  const d = (tight ? Math.max(360, Math.min(880, span * .74)) : Math.max(380, Math.min(1050, span * .85))) * wide;
   camTo = { tx: avg('x'), ty: avg('y'), tz: avg('z'), dist: d, yaw: cam.yaw, pitch: cam.pitch };
 }
+/* ── 축 투어 — 축을 따라 카메라가 지나가며 지나치는 자리의 점을 켠다 ──────
+   좌표에 뜻이 있다는 것을 글로 읽는 대신 눈으로 보게 하는 장치다. */
+const LV = ['근거 · 우려 · 질문', '쟁점', '주장 · 제안 · 조건', '결론 (결정 · 조건부 · 미결)', '업무'];
+/* 훑는 구간은 논의 노드가 실제로 놓인 범위로만 잡는다 — 참여자·파트는 맨 위에 따로 떠 있어서
+   BOX 를 그대로 쓰면 투어 끝이 텅 빈 구간이 된다 */
+const ext = k => { const v = BOX.body.map(n => n[k]); return [Math.min(...v), Math.max(...v)]; };
+const TOUR_DEF = {
+  x: { k: 'x', a: () => ext('x')[0] - 40, b: () => ext('x')[1] + 40, dur: 11000, win: 170,
+       name: 'X · 회의 시간', tip: '왼쪽이 회의 시작, 오른쪽이 끝',
+       read: v => `${Math.round(Math.max(0, ((v + W / 2) / W) * DUR) / 60)}분 지점` },
+  y: { k: 'y', a: () => ext('y')[0] - 30, b: () => ext('y')[1] + 30, dur: 10000, win: 105,
+       name: 'Y · 정보 역할', tip: '아래에서 위로 — 근거에서 결론 · 업무까지',
+       read: v => LV[Math.max(0, Math.min(4, Math.round(v / 175 + 2.2)))] },
+  z: { k: 'z', a: () => ext('z')[1] + 40, b: () => ext('z')[0] - 40, dur: 9000, win: 180,
+       name: 'Z · 관계 밀도', tip: '뒤에서 앞으로 — 많이 엮인 것일수록 앞에 놓여요', read: () => '' },
+};
+let TOUR = null;
+function startTour(ax) {
+  const was = TOUR && TOUR.ax;
+  stopTour();
+  if (was === ax || !TOUR_DEF[ax]) return;            /* 같은 축을 다시 누르면 멈춘다 */
+  cancelQuery(); resetLights(); clearFocus();
+  const d = TOUR_DEF[ax];
+  TOUR = { ax, d, t0: performance.now(), a: d.a(), b: d.b() };
+  camTo = null; ORBIT = null; dimTo = .5;
+  document.querySelectorAll('.axes button').forEach(b => b.classList.toggle('on', b.dataset.tour === ax));
+  $('#tourcap').classList.add('on');
+}
+function stopTour() {
+  if (!TOUR) return;
+  TOUR = null; dimTo = 0;
+  NODES.forEach(n => { n.glowTo = 0; });
+  document.querySelectorAll('.axes button').forEach(b => b.classList.remove('on'));
+  $('#tourcap').classList.remove('on');
+  fitAll();
+}
+function tourStep(now, dt, kCam) {
+  const d = TOUR.d, k = (now - TOUR.t0) / d.dur;
+  if (k >= 1) return stopTour();
+  const v = TOUR.a + (TOUR.b - TOUR.a) * k;
+  cam.tx = ease(cam.tx, d.k === 'x' ? v : HC.x, kCam);
+  cam.ty = ease(cam.ty, d.k === 'y' ? v : HC.y, kCam);
+  cam.tz = ease(cam.tz, d.k === 'z' ? v : HC.z, kCam);
+  cam.dist = ease(cam.dist, 660, kCam * .6);
+  cam.yaw += 0.00004 * dt; home.yaw = cam.yaw;        /* 아주 조금씩 돌려 입체가 읽히게 */
+  let lit = 0;
+  for (const n of NODES) {
+    if (n.x == null || CTX.has(n.type)) continue;
+    const away = Math.abs(n[d.k] - v);
+    n.glowTo = away < d.win ? 1.5 * (1 - away / d.win) : 0;   /* 한가운데 것은 .95 를 넘겨 이름까지 뜬다 */
+    if (n.glowTo > .25) lit++;
+  }
+  const r = d.read(v);
+  $('#tourcap').innerHTML = `<b>${esc(d.name)}</b>${r ? ' · ' + esc(r) : ''}<em>${esc(d.tip)} · 지금 ${lit}개</em>`;
+}
+
 /* 답을 다 찾은 뒤 — 그 덩어리를 바짝 당겨 보여 주고 아주 느리게 돌려 입체를 읽게 한다 */
 let ORBIT = null;
 function orbitOn() { if (camTo) ORBIT = { t0: performance.now(), yaw0: camTo.yaw, pitch0: camTo.pitch }; }
@@ -1165,7 +1276,36 @@ function compose(R) {
 const STEP_NAMES = ['질문 해석', '후보 노드 점등', '관계 탐색', '원 발화 확인', '답변'];
 /* 탐색 순서는 타이머로 돈다. 그리기(rAF)와 떼어 두어야 탭이 가려져 있어도 답이 끝까지 나온다. */
 const Q = { active: false, timers: [] };
-function cancelQuery() { Q.active = false; Q.timers.forEach(clearTimeout); Q.timers = []; orbitOff(); }
+function cancelQuery() { Q.active = false; Q.timers.forEach(clearTimeout); Q.timers = []; orbitOff(); stopScan(); }
+
+/* 답을 기다리는 동안 맵이 가만히 있지 않게 — 질문에 걸리는 점을 하나씩 빠르게 짚어 본다.
+   고르는 기준은 규칙 기반 탐색이 실제로 쓰는 score() 다. 아무 점이나 깜빡이는 것이 아니다. */
+const SCAN = { timer: 0, i: 0, list: [] };
+function startScan(q) {
+  const toks = tokens(q);
+  const ranked = NODES.filter(n => !CTX.has(n.type) && n.x != null)
+    .map(n => [n, score(n, toks)]).sort((a, b) => b[1] - a[1]);
+  const hit = ranked.filter(r => r[1] > 0).map(r => r[0]);
+  SCAN.list = (hit.length >= 5 ? hit : ranked.map(r => r[0])).slice(0, 40);
+  SCAN.i = 0;
+  if (hit.length >= 5) lookAt(hit.slice(0, 12));      /* 걸리는 데가 있으면 그 언저리로 먼저 간다 */
+  $('#scan').classList.add('on');
+  /* 점 하나를 켜면서 그 점에 걸린 논의 관계선 하나도 같이 흘린다 — 관계를 따라가는 중인 것이 보이게 */
+  SCAN.timer = setInterval(() => {
+    const n = SCAN.list[SCAN.i++ % SCAN.list.length];
+    if (!n) return;
+    n.glowTo = .88;                                  /* .95 를 넘기면 이름표까지 깜빡여 어지럽다 */
+    const e = [...n.out, ...n.in].find(x => DISC.has(x.axis));
+    if (e) { e.litTo = .8; particles.push({ e, t0: performance.now(), dur: 430 }); }
+    setTimeout(() => { if (SCAN.timer) { n.glowTo = 0; if (e) e.litTo = 0; } }, 430);
+  }, 60);
+}
+function stopScan() {
+  if (!SCAN.timer) return;
+  clearInterval(SCAN.timer); SCAN.timer = 0;
+  SCAN.list.forEach(n => { n.glowTo = 0; [...n.out, ...n.in].forEach(e => { e.litTo = 0; }); });
+  $('#scan').classList.remove('on');
+}
 function setStep(i) {
   const box = $('#box'); box.querySelectorAll('.steps span').forEach((s, k) => {
     s.classList.toggle('on', k <= i); s.classList.toggle('now', k === i);
@@ -1240,7 +1380,9 @@ async function ask(q) {
     <div class="steps">${STEP_NAMES.map(() => '<span></span>').join('')}</div><div class="stepl"></div>
     <div id="res"><div class="skel"><i></i><i></i><i></i></div></div>`;
   box.scrollIntoView({ block: 'nearest' });
-  setStep(0); dimTo = .75;
+  setStep(0); dimTo = .72;
+  bare(false);                                         /* 답은 왼쪽 패널에 나온다 — 질문하면 열어 준다 */
+  startScan(q);
   /* 답이 오기 전에도 어디까지 왔는지 보이게 — 네 번째 칸까지만 혼자 넘어가고 마지막은 답이 왔을 때 */
   const AT = [0, 1200, 2800, 4800];
   const t0 = Date.now(), tick = setInterval(() => {
@@ -1248,15 +1390,16 @@ async function ask(q) {
     const ms = Date.now() - t0;
     let i = 0; while (i < AT.length - 1 && ms >= AT[i + 1]) i++;
     setStep(i);
-    const l = box.querySelector('.stepl');
-    if (l) l.textContent = `${i + 1}/5 · ${STEP_NAMES[i]} · 찾는 중 ${(ms / 1000) | 0}초`;
+    const l = box.querySelector('.stepl'), line = `${i + 1}/5 · ${STEP_NAMES[i]} · 찾는 중 ${(ms / 1000) | 0}초`;
+    if (l) l.textContent = line;
+    $('#scantx').textContent = line;                   /* 맵 쪽에도 같은 진행을 띄운다 */
   }, 200);
   let ai = null, why = '';
   try {
     const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q }) });
     const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); ai = j;
   } catch (e) { why = String(e.message || e); }
-  clearInterval(tick);
+  clearInterval(tick); stopScan();
   if (my !== askSeq) return;                            /* 기다리는 사이 다른 걸 물었다 */
   if (ai) {
     if (!ai.path.length) return notFound(ai.answer.join(' ') || '이 질문에 해당하는 내용을 회의에서 찾지 못했어요.');
@@ -1267,7 +1410,7 @@ async function ask(q) {
   const R = explore(q);
   if (R.fail) return notFound('이 질문에 걸리는 내용을 찾지 못했어요. 다르게 물어봐 주세요.');
   const A = compose(R);
-  play(R, () => answerHTML(A.lead, A.groups, R, `AI 서버에 닿지 못해 규칙 기반으로 찾았어요 (${why.slice(0, 60)}). AI 탐색은 발표자 노트북에서만 돌아요.`));
+  play(R, () => answerHTML(A.lead, A.groups, R, `규칙 기반 탐색으로 찾은 답이에요. 관계를 더 깊이 따라가는 AI 탐색은 발표자 노트북에서만 돌아갑니다.`));
 }
 $('#askf').addEventListener('submit', e => { e.preventDefault(); ask($('#askq').value); });
 
@@ -1694,8 +1837,14 @@ function bare(on) {
   setTimeout(resize, 260);
 }
 $('#dopen2').onclick = openDesign;
+document.querySelectorAll('.axes button').forEach(b => { b.onclick = () => startTour(b.dataset.tour); });
+$('#viewbar').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setView(b.dataset.view); });
 addEventListener('keydown', e => {
   if (e.key === 'Escape' && !$('#design').hidden) return closeDesign();
+  if (e.key === 'Escape' && TOUR) return stopTour();
+  if (/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '') || !$('#design').hidden) return;
+  const ax = { x: 'x', y: 'y', z: 'z', ㅌ: 'x', ㅛ: 'y', ㅋ: 'z' }[e.key.toLowerCase()];
+  if (ax) return startTour(ax);
   if ((e.key === 'h' || e.key === 'H' || e.key === 'ㅗ') && !/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '')
       && $('#design').hidden) bare(!document.body.classList.contains('bare'));
 });
