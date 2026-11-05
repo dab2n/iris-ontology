@@ -202,6 +202,7 @@ body:not(.bare) .ptab{display:none}
 body.demo .ask,body.demo .eg,body.demo .ptab,body.demo .hint,
 body.demo .axes,body.demo .legend,body.demo .dsgn,body.demo .viewbar,body.demo .tourcap{
   opacity:0;pointer-events:none;transition-duration:.45s;transition-delay:0s}
+body.demo canvas{pointer-events:none}
 @media (prefers-reduced-motion:reduce){.filmcap p{animation:none}}
 .field{display:flex;align-items:center;gap:10px;height:46px;padding:0 8px 0 16px;border-radius:23px;
   background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.55);
@@ -1582,6 +1583,9 @@ $('#popen').onclick = () => bare(false);
    자막은 검색창 자리에 서고, 맵은 그 말에 맞춰 한 장면씩 움직인다.
    질문 장면은 규칙 기반 탐색으로 돈다 — 전시 내내 도는 것이라 AI 서버를 부르지 않는다. */
 const IDLE_MS = 8000;                                   /* 화면이 멈춰 있지 않게 — 손을 떼면 8초 만에 다시 돈다 */
+/* 전시 잠금 — 관람객이 건드려도 영상만 반복한다 (로고 → … → 체험해 볼 차례입니다 가 한 바퀴).
+   직접 만져 보려면 주소 뒤에 ?free 를 붙인다. 잠금을 아주 풀 때는 이 값을 false 로 둔다. */
+const KIOSK = !new URLSearchParams(location.search).has('free');
 /* 전체가 한눈에 들어오는 자리. 참여자·파트는 맵 바깥에 멀찍이 떠 있어서 계산에 넣으면
    그 둘을 담느라 본체가 작아진다 — 논의 노드만 기준으로 잡는다 */
 function wideShot(k, pitch) {
@@ -1684,7 +1688,7 @@ function demoOff(soft) {
   lastInput = performance.now();
 }
 ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
-  addEventListener(ev, () => { lastInput = performance.now(); demoOff(false); }, { passive: true, capture: true }));
+  addEventListener(ev, () => { lastInput = performance.now(); if (!KIOSK) demoOff(false); }, { passive: true, capture: true }));
 /* 지킴이 — 2초마다 본다. 돌다가 굳었으면 되살리고, 쉬고 있으면 다시 띄운다 */
 setInterval(() => {
   if (!$('#design').hidden) return;                   /* 설계 보기가 열려 있으면 건드리지 않는다 */
@@ -1693,6 +1697,7 @@ setInterval(() => {
     if (now - sceneAt > 40000) { demoOff(false); demoOn(); }   /* 가장 긴 장면이 17.5초 — 40초면 멈춘 것 */
     return;
   }
+  if (KIOSK) return demoOn();                         /* 잠금 중에는 늘 돌고 있어야 한다 */
   if (Q.active && now - lastInput < 20000) return;    /* 질문이 도는 중. 20초가 넘으면 묶인 것으로 본다 */
   if (now - lastInput > IDLE_MS) demoOn();
 }, 2000);
@@ -2222,6 +2227,7 @@ $('#dopen2').onclick = openDesign;
 document.querySelectorAll('.axes button').forEach(b => { b.onclick = () => startTour(b.dataset.tour); });
 $('#viewbar').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setView(b.dataset.view); });
 addEventListener('keydown', e => {
+  if (KIOSK) return;                                   /* 전시 잠금 — 단축키도 받지 않는다 */
   if (e.key === 'Escape' && !$('#design').hidden) return closeDesign();
   if (e.key === 'Escape' && TOUR) return stopTour();
   if (/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '') || !$('#design').hidden) return;
@@ -2238,10 +2244,10 @@ resize();
 requestAnimationFrame(frame);
 { const q0 = new URLSearchParams(location.search).get('q');   /* ?q=질문 — 그 질문으로 바로 탐색 */
   const ready = INTRO.skip ? 400 : PT_AT + PT_SPAN + PT_DUR + 500;   /* 점이 다 떠오르고 자리를 잡을 때까지 */
-  if (q0) setTimeout(() => { $('#askq').value = q0; ask(q0); }, ready);
+  if (q0 && !KIOSK) setTimeout(() => { $('#askq').value = q0; ask(q0); }, ready);
   /* 처음 들어오면 영상부터 — 전시장에서 아무도 건드리지 않아도 혼자 시작한다.
-     로딩 중에 누가 이미 만졌으면(lastInput 이 찍혔으면) 가만히 둔다 */
-  else setTimeout(() => { if (!lastInput) demoOn(); }, ready); }
+     잠금을 풀었을 때만, 로딩 중에 누가 이미 만졌으면(lastInput 이 찍혔으면) 가만히 둔다 */
+  else setTimeout(() => { if (KIOSK || !lastInput) demoOn(); }, ready); }
 </script>
 </body>
 </html>
