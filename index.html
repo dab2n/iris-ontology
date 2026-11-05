@@ -1631,7 +1631,7 @@ const SHOW = [
   { ms: 7500, say: ['이제 여러분들이 체험해 볼 차례입니다'],
     go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(.70); setTimeout(orbitOn, 900); } },
 ];
-let showT = 0, capT = 0;
+let showT = 0, capT = 0, sceneAt = 0;
 const inDemo = () => document.body.classList.contains('demo');
 /* 한 장면의 문장들을 하나씩 연달아 띄운다. 머무는 시간은 글자 수에 비례하게 나눠
    짧은 문장이 길게 걸려 있거나 긴 문장이 휙 지나가지 않게 한다. */
@@ -1655,12 +1655,17 @@ function capPlay(lines, total) {
 }
 function demoScene(i) {
   const s = SHOW[i % SHOW.length];                    /* 손이 닿을 때까지 계속 돈다 */
-  capPlay(s.say, s.ms);
-  s.go();
+  sceneAt = performance.now();
+  /* 다음 장면을 먼저 걸어 둔다 — 장면 하나가 터져도 거기서 영원히 멈추지 않게.
+     (전에는 go() 가 예외를 내면 다음 타이머가 걸리지 않아 화면이 그대로 굳었다) */
+  clearTimeout(showT);
   showT = setTimeout(() => demoScene(i + 1), s.ms);
+  try { capPlay(s.say, s.ms); s.go(); }
+  catch (e) { console.warn('장면 ' + (i % SHOW.length) + ' 건너뜀', e); }
 }
 function demoOn() {
-  if (inDemo() || !$('#design').hidden || Q.active) return;
+  if (inDemo() || !$('#design').hidden) return;
+  cancelQuery();                                      /* 돌던 질문이 있으면 접고 시작한다 */
   document.body.classList.add('demo');
   $('#cap').hidden = false;
   demoScene(0);
@@ -1680,9 +1685,16 @@ function demoOff(soft) {
 }
 ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
   addEventListener(ev, () => { lastInput = performance.now(); demoOff(false); }, { passive: true, capture: true }));
+/* 지킴이 — 2초마다 본다. 돌다가 굳었으면 되살리고, 쉬고 있으면 다시 띄운다 */
 setInterval(() => {
-  if (inDemo() || !$('#design').hidden || Q.active) return;
-  if (performance.now() - lastInput > IDLE_MS) demoOn();
+  if (!$('#design').hidden) return;                   /* 설계 보기가 열려 있으면 건드리지 않는다 */
+  const now = performance.now();
+  if (inDemo()) {
+    if (now - sceneAt > 40000) { demoOff(false); demoOn(); }   /* 가장 긴 장면이 17.5초 — 40초면 멈춘 것 */
+    return;
+  }
+  if (Q.active && now - lastInput < 20000) return;    /* 질문이 도는 중. 20초가 넘으면 묶인 것으로 본다 */
+  if (now - lastInput > IDLE_MS) demoOn();
 }, 2000);
 
 /* ================= 6. 왼쪽 — 질문에 대한 답만 ================= */
