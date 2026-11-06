@@ -1562,7 +1562,7 @@ $('#askf').addEventListener('submit', e => { e.preventDefault(); ask($('#askq').
 
 /* 처음 온 사람은 무엇을 물어야 할지부터 막힌다 — 눌러서 바로 보내는 예시를 깔고,
    입력창 안내문은 그 예시들을 천천히 돌려 보여 준다 */
-const EG = ['로고는 왜 그렇게 정했어?', '할 일 알려줘', '아직 안 정해진 건 뭐야?',
+const EG = ['최종 시안과 그 시안을 고른 이유가 뭐야?', '할 일 알려줘', '아직 안 정해진 건 뭐야?',
             '타깃 부위는 어떻게 정했어?', 'Lina 가 맡은 건 뭐야?', '반대 의견이 있었어?'];
 $('#eg').innerHTML = EG.slice(0, 3).map(q => `<button type="button">${esc(q)}</button>`).join('');
 $('#eg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ask(b.textContent); });
@@ -1582,10 +1582,7 @@ $('#popen').onclick = () => bare(false);
 /* ══ 전시 모드 — 아무도 만지지 않으면 맵이 스스로 설명한다 ══════════════
    자막은 검색창 자리에 서고, 맵은 그 말에 맞춰 한 장면씩 움직인다.
    질문 장면은 규칙 기반 탐색으로 돈다 — 전시 내내 도는 것이라 AI 서버를 부르지 않는다. */
-const IDLE_MS = 8000;                                   /* 화면이 멈춰 있지 않게 — 손을 떼면 8초 만에 다시 돈다 */
-/* 전시 잠금 — 관람객이 건드려도 영상만 반복한다 (로고 → … → 체험해 볼 차례입니다 가 한 바퀴).
-   직접 만져 보려면 주소 뒤에 ?free 를 붙인다. 잠금을 아주 풀 때는 이 값을 false 로 둔다. */
-const KIOSK = !new URLSearchParams(location.search).has('free');
+const IDLE_MS = 60000;                                  /* 손을 떼고 1분이 지나면 다시 영상으로 돌아간다 */
 /* 전체가 한눈에 들어오는 자리. 참여자·파트는 맵 바깥에 멀찍이 떠 있어서 계산에 넣으면
    그 둘을 담느라 본체가 작아진다 — 논의 노드만 기준으로 잡는다 */
 function wideShot(k, pitch) {
@@ -1631,7 +1628,7 @@ const SHOW = [
     go: () => { stopTour(); dimTo = 0; setView('edges'); wideShot(.64); setTimeout(orbitOn, 1000); } },
   { ms: 16000, say: ['Iris 는 이 연결 관계를 따라 답을 찾습니다',
            '근거가 된 실제 발언까지 함께 보여줍니다'],
-    go: () => { setView('all'); demoAsk('로고는 왜 그렇게 정했어?'); } },
+    go: () => { setView('all'); demoAsk('최종 시안과 그 시안을 고른 이유가 뭐야?'); } },
   { ms: 7500, say: ['이제 여러분들이 체험해 볼 차례입니다'],
     go: () => { bare(true); clearFocus(); dimTo = 0; wideShot(.70); setTimeout(orbitOn, 900); } },
 ];
@@ -1688,7 +1685,7 @@ function demoOff(soft) {
   lastInput = performance.now();
 }
 ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
-  addEventListener(ev, () => { lastInput = performance.now(); if (!KIOSK) demoOff(false); }, { passive: true, capture: true }));
+  addEventListener(ev, () => { lastInput = performance.now(); demoOff(false); }, { passive: true, capture: true }));
 /* 지킴이 — 2초마다 본다. 돌다가 굳었으면 되살리고, 쉬고 있으면 다시 띄운다 */
 setInterval(() => {
   if (!$('#design').hidden) return;                   /* 설계 보기가 열려 있으면 건드리지 않는다 */
@@ -1697,7 +1694,6 @@ setInterval(() => {
     if (now - sceneAt > 40000) { demoOff(false); demoOn(); }   /* 가장 긴 장면이 17.5초 — 40초면 멈춘 것 */
     return;
   }
-  if (KIOSK) return demoOn();                         /* 잠금 중에는 늘 돌고 있어야 한다 */
   if (Q.active && now - lastInput < 20000) return;    /* 질문이 도는 중. 20초가 넘으면 묶인 것으로 본다 */
   if (now - lastInput > IDLE_MS) demoOn();
 }, 2000);
@@ -2227,7 +2223,6 @@ $('#dopen2').onclick = openDesign;
 document.querySelectorAll('.axes button').forEach(b => { b.onclick = () => startTour(b.dataset.tour); });
 $('#viewbar').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setView(b.dataset.view); });
 addEventListener('keydown', e => {
-  if (KIOSK) return;                                   /* 전시 잠금 — 단축키도 받지 않는다 */
   if (e.key === 'Escape' && !$('#design').hidden) return closeDesign();
   if (e.key === 'Escape' && TOUR) return stopTour();
   if (/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '') || !$('#design').hidden) return;
@@ -2244,10 +2239,10 @@ resize();
 requestAnimationFrame(frame);
 { const q0 = new URLSearchParams(location.search).get('q');   /* ?q=질문 — 그 질문으로 바로 탐색 */
   const ready = INTRO.skip ? 400 : PT_AT + PT_SPAN + PT_DUR + 500;   /* 점이 다 떠오르고 자리를 잡을 때까지 */
-  if (q0 && !KIOSK) setTimeout(() => { $('#askq').value = q0; ask(q0); }, ready);
-  /* 처음 들어오면 영상부터 — 전시장에서 아무도 건드리지 않아도 혼자 시작한다.
-     잠금을 풀었을 때만, 로딩 중에 누가 이미 만졌으면(lastInput 이 찍혔으면) 가만히 둔다 */
-  else setTimeout(() => { if (KIOSK || !lastInput) demoOn(); }, ready); }
+  if (q0) setTimeout(() => { $('#askq').value = q0; ask(q0); }, ready);
+  /* 처음 들어오면 영상부터 — 아무도 건드리지 않아도 혼자 시작한다.
+     로딩 중에 누가 이미 만졌으면(lastInput 이 찍혔으면) 가만히 둔다 */
+  else setTimeout(() => { if (!lastInput) demoOn(); }, ready); }
 </script>
 </body>
 </html>
